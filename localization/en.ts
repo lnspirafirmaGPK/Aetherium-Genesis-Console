@@ -303,4 +303,14 @@ export const en = {
     hubSystemicDesc: "Data Fabric (Bronze → Silver → Gold pipeline), Economic Fabric with tier-based pricing, and architectural royalty systems.",
     hubSystemicFeature: "Real-time Simulation",
     hubOpenFabric: "Open Fabric View",
+// FIX: Add missing translation keys for CLI Extension Hub view
+    cliExtensionHub: "CLI Extension Hub",
+    cliExtensionFiles: "Extension Files",
+    cliLinkFirst: "Link the extension first to use commands.",
+    cliExtensionControl: "Extension Control",
+    cliMcpServer: "MCP Server",
+    cliUnlink: "Unlink",
+    cliLink: "Link",
+    cliSlashCommands: "Slash Commands",
+    cliGrepDesc: "Searches the codebase for a given pattern and provides an AI summary.",
 };

@@ -14,6 +14,7 @@ import { ConfirmationModal } from './components/ConfirmationModal';
 import { ModelConfigModal } from './components/ModelConfigModal';
 import { UserProfilePanel } from './components/UserProfilePanel';
 import { EconomicFabricView } from './components/EconomicFabricView';
+import { CliExtensionView } from './components/CliExtensionView';
 import { HubView } from './components/HubView';
 import { Notification as NotificationComponent } from './components/Notification';
 import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig, Notification } from './types';
@@ -25,7 +26,7 @@ import { AetherBus } from './services/aetherBus';
 import { CloseIcon, CodeIcon, GitHubIcon, SpinnerIcon, CheckCircleIcon, GitBranchIcon, SparklesIcon } from './components/icons';
 import type { TranslationKey } from './localization';
 
-type AppTab = 'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric';
+type AppTab = 'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric' | 'cli';
 type ViewFocus = 'editor' | 'panel';
 
 interface NavState {
@@ -120,6 +121,7 @@ const App: React.FC = () => {
                 'economic-fabric': 'economicFabric',
                 'aetherbus': 'aether',
                 'aether-canvas': 'aether',
+                'cli-extension': 'cli',
             };
             const targetTab = moduleMap[initialModule];
             if (targetTab) {
@@ -369,6 +371,7 @@ const App: React.FC = () => {
         aether: 'aetherInterface',
         agent: 'aiAgent',
         graph: 'dependencyGraph',
+        cli: 'cliExtensionHub',
     };
     
     if (activeView === 'hub') {
@@ -426,12 +429,13 @@ const App: React.FC = () => {
                     )}
                     
                     {focusedView === 'editor' && (
-                         <div className="grid grid-cols-4 lg:grid-cols-8 border-b border-gray-700 flex-shrink-0">
+                         <div className="grid grid-cols-4 lg:grid-cols-9 border-b border-gray-700 flex-shrink-0">
                             <button onClick={() => handleFocusPanel('genesis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'genesis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageGenesis')}</button>
                             <button onClick={() => handleFocusPanel('analysis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'analysis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageAnalysis')}</button>
                             <button onClick={() => handleFocusPanel('chat')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'chat' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('chatbot')}</button>
                             <button onClick={() => handleFocusPanel('fabric')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'fabric' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dataFabric')}</button>
                             <button onClick={() => handleFocusPanel('economicFabric')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'economicFabric' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('economicFabric')}</button>
+                            <button onClick={() => handleFocusPanel('cli')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'cli' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('cliExtensionHub')}</button>
                             <button onClick={() => handleFocusPanel('aether')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'aether' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aetherInterface')}</button>
                             <button onClick={() => handleFocusPanel('agent')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'agent' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aiAgent')}</button>
                             <button onClick={() => handleFocusPanel('graph')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'graph' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dependencyGraph')}</button>
@@ -444,6 +448,7 @@ const App: React.FC = () => {
                        {activeTab === 'chat' && <Chatbot />}
                        {activeTab === 'fabric' && <DataFabricView files={files} analysisResult={analysisResult} completedTasks={completedTasks} onPublish={handleOpenGitHubModal} />}
                        {activeTab === 'economicFabric' && <EconomicFabricView addNotification={addNotification} userEmail={currentUserEmail} />}
+                       {activeTab === 'cli' && <CliExtensionView />}
                        {activeTab === 'aether' && (
                            <div className="flex flex-col h-full text-sm">
                                {isGenesisModeActive ? (

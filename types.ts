@@ -206,3 +206,5 @@ export interface TransactionEntry {
     amount: number;
     destination: string;
 }
+
+export type AppTab = 'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric' | 'cli';

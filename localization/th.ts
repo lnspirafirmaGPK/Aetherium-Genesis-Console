@@ -303,4 +303,14 @@ export const th = {
     hubSystemicDesc: "โครงสร้างข้อมูล (ไปป์ไลน์ Bronze → Silver → Gold), โครงข่ายเศรษฐกิจพร้อมการกำหนดราคาตามระดับ, และระบบค่าสถาปัตยกรรม",
     hubSystemicFeature: "การจำลองแบบเรียลไทม์",
     hubOpenFabric: "เปิด Fabric View",
+// FIX: Add missing translation keys for CLI Extension Hub view
+    cliExtensionHub: "ฮับส่วนขยาย CLI",
+    cliExtensionFiles: "ไฟล์ส่วนขยาย",
+    cliLinkFirst: "กรุณาเชื่อมต่อส่วนขยายก่อนใช้คำสั่ง",
+    cliExtensionControl: "แผงควบคุมส่วนขยาย",
+    cliMcpServer: "เซิร์ฟเวอร์ MCP",
+    cliUnlink: "ยกเลิกการเชื่อมต่อ",
+    cliLink: "เชื่อมต่อ",
+    cliSlashCommands: "Slash Commands",
+    cliGrepDesc: "ค้นหารูปแบบในโค้ดเบสและสรุปผลด้วย AI",
 };
