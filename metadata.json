@@ -1,0 +1,5 @@
+{
+  "name": "Aetherium Genesis Console",
+  "description": "An interactive tool to visualize codebases, identify structural issues like circular dependencies and dead code, and simulate modern refactoring operations. Built for developers to better understand and improve code modularity.",
+  "requestFramePermissions": []
+}
