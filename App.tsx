@@ -126,6 +126,7 @@ const App: React.FC = () => {
         const result = analysisEngine.runFullAnalysis();
         setAnalysisResult(result);
         const newTasks: RefactoringTask[] = [];
+
         if (result.circularDependencies.length > 0) {
              newTasks.push({
                 id: 'CIRCULAR_DEP_AUTH_CLIENT', type: 'BREAK_CIRCULAR_DEPENDENCY', titleKey: 'task_circ_dep_title', descriptionKey: 'task_circ_dep_desc',
@@ -133,13 +134,18 @@ const App: React.FC = () => {
                 planKeys: ['task_circ_dep_plan_1', 'task_circ_dep_plan_2', 'task_circ_dep_plan_3', 'task_circ_dep_plan_4']
             });
         }
-        if (result.deadCodeFiles.includes('src/legacy/old-utils.ts')) {
+        
+        result.deadCodeFiles.forEach(filePath => {
             newTasks.push({
-                id: 'DEAD_CODE_OLD_UTILS', type: 'REMOVE_DEAD_CODE', titleKey: 'task_dead_code_title', descriptionKey: 'task_dead_code_desc',
-                filesInvolved: ['src/legacy/old-utils.ts'],
-                planKeys: ['task_dead_code_plan_1', 'task_dead_code_plan_2', 'task_dead_code_plan_3']
+                id: `REMOVE_DEAD_CODE_${filePath}`,
+                type: 'REMOVE_DEAD_CODE',
+                titleKey: 'task_dead_code_title',
+                descriptionKey: 'task_dead_code_desc_generic',
+                filesInvolved: [filePath],
+                planKeys: ['task_dead_code_plan_1_generic', 'task_dead_code_plan_2_generic', 'task_dead_code_plan_3_generic']
             });
-        }
+        });
+
         setStaticTasks(newTasks);
         setCompletedTasks(prev => prev.filter(taskId => newTasks.some(t => t.id === taskId)));
     }, [analysisEngine]);
@@ -149,6 +155,40 @@ const App: React.FC = () => {
     }, [runAnalysis]);
 
     const allTasks = useMemo(() => [...staticTasks, ...dynamicTasks], [staticTasks, dynamicTasks]);
+    
+    // Auto-execute dead code removal on startup after analysis
+    useEffect(() => {
+        if (!analysisResult || staticTasks.length === 0) {
+            return;
+        }
+
+        const deadCodeTasksToExecute = staticTasks.filter(
+            task => task.type === 'REMOVE_DEAD_CODE' && !completedTasks.includes(task.id)
+        );
+
+        if (deadCodeTasksToExecute.length > 0) {
+            console.log(`[Auto-Refactor] Found ${deadCodeTasksToExecute.length} dead code task(s) to execute.`);
+
+            let currentFiles = files;
+            deadCodeTasksToExecute.forEach(task => {
+                currentFiles = RefactoringEngine.execute(currentFiles, task);
+            });
+            
+            setFiles(currentFiles);
+
+            const completedIds = deadCodeTasksToExecute.map(task => task.id);
+            setCompletedTasks(prev => [...new Set([...prev, ...completedIds])]);
+
+            const purgedFiles = deadCodeTasksToExecute.map(t => `'${t.filesInvolved[0]}'`).join(', ');
+            addNotification(
+                'task_dead_code_title',
+                'deadCodeAutoPurgedMessage',
+                'success',
+                purgedFiles
+            );
+        }
+    }, [analysisResult, staticTasks, files, completedTasks, addNotification]);
+
 
     useEffect(() => {
         const aetherBus = AetherBus.getInstance();

@@ -2,21 +2,33 @@ import type { CodeFile, RefactoringTask } from '../types';
 
 export class RefactoringEngine {
     public static execute(files: CodeFile[], task: RefactoringTask): CodeFile[] {
-        // Use startsWith for dynamic tasks since their ID is generated
         if (task.id.startsWith('SPLIT_UTILITIES')) {
             return this.splitUtilities(files, task.filesInvolved[0]);
         }
 
-        switch (task.id) {
-            case 'CIRCULAR_DEP_AUTH_CLIENT':
+        switch (task.type) {
+            case 'BREAK_CIRCULAR_DEPENDENCY':
                 return this.breakCircularDependencyAuthClient(files);
-            case 'DEAD_CODE_OLD_UTILS':
-                return this.removeDeadCodeOldUtils(files);
+            case 'REMOVE_DEAD_CODE':
+                return this.removeDeadCode(files, task.filesInvolved[0]);
+            case 'REVIEW_ABSTRACTION':
+                 return files;
             default:
-                // For other dynamic tasks like REVIEW_ABSTRACTION, we just return the files
-                // as it's a suggestion, not an automated action.
                 return files;
         }
+    }
+
+    private static removeDeadCode(files: CodeFile[], filePath: string): CodeFile[] {
+        const newFiles = files.map(f => ({ ...f }));
+        const fileToModify = newFiles.find(f => f.path === filePath);
+
+        if (fileToModify) {
+            const originalContent = fileToModify.content;
+            fileToModify.content = `// This file contained deprecated functions or functions that were not used.\n` +
+                                  `// The dead code has been commented out by the AI agent.\n\n` +
+                                  `/*\n${originalContent.trim()}\n*/\n`;
+        }
+        return newFiles;
     }
 
     private static breakCircularDependencyAuthClient(files: CodeFile[]): CodeFile[] {
@@ -79,29 +91,6 @@ export class ApiClient {
         }
         
         return [...newFiles, tokenProviderFile];
-    }
-
-    private static removeDeadCodeOldUtils(files: CodeFile[]): CodeFile[] {
-        const newFiles = files.map(f => ({ ...f }));
-        const oldUtilsFile = newFiles.find(f => f.path === 'src/legacy/old-utils.ts');
-
-        if (oldUtilsFile) {
-            oldUtilsFile.content = `// This file contained deprecated functions.
-// The dead code has been removed by the AI agent.
-
-/*
-export function oldUnusedFunction() {
-    console.log("I am never called.");
-    return true;
-}
-
-export function anotherOldOne() {
-    return 'still here';
-}
-*/
-`;
-        }
-        return newFiles;
     }
 
     private static splitUtilities(files: CodeFile[], filePath: string): CodeFile[] {
