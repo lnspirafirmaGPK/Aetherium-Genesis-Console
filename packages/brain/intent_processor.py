@@ -2,16 +2,21 @@ import random
 import asyncio
 from aether_bus import AetherBus
 from identity import ZoIdentity
+from memory import Vault
 
 class IntentProcessor:
     def __init__(self, bus: AetherBus):
         self.bus = bus
         self.identity = ZoIdentity(role="INTENT_CORE")
+        self.vault = Vault()
 
     async def process_voice_input(self, text_input=""):
         """
         Simulate analyzing voice input and deciding Path A or Path B.
         """
+        # Store raw input as a potential gem? Or only realized intent?
+        # Let's store successful manifestations.
+
         # Simulate Processing Delay (MANANA state)
         await asyncio.sleep(2.0)
 
@@ -23,14 +28,27 @@ class IntentProcessor:
             await self._trigger_path_b(text_input or "DELETE SECTOR 7?")
         else:
             # Path A: Direct Manifestation
+            # We treat this as a "Resonated Intent" and store/update it
+            self._crystallize_intent(text_input or "Unknown Command")
             await self._trigger_path_a()
 
     async def confirm_intent(self):
         """
         Called when user confirms the Glyph (Path B success).
         """
+        # Crystallize the confirmed truth
+        self._crystallize_intent("Confirmed Glyph Intent") # In real app, pass the text ID
+
         # Transition to Manifestation
         await self._trigger_path_a()
+
+    def _crystallize_intent(self, text):
+        """
+        Store or update the intent in the Vault.
+        """
+        # In a real system, we'd query for semantic similarity first.
+        # Here we just store it as a new gem for simulation.
+        self.vault.store_gem(text, {"source": "voice", "confidence": 1.0})
 
     async def _trigger_path_b(self, text):
         payload = {
