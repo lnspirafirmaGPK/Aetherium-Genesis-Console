@@ -70,7 +70,8 @@ export const ModelConfigModal: React.FC<ModelConfigModalProps> = ({ isOpen, onCl
                         {Object.entries(SYSTEM_OPTIONS).map(([system, models]) => (
                             <div key={system}>
                                 <label htmlFor={`model-select-${system}`} className="block text-md font-medium text-gray-300 mb-1">
-                                    {t(system as keyof typeof en)}
+                                    {/* FIX: Cast system to `keyof ModelConfig` which is a valid TranslationKey. This resolves the type error and the "Cannot find name 'en'" error. */}
+                                    {t(system as keyof ModelConfig)}
                                 </label>
                                 <select
                                     id={`model-select-${system}`}
