@@ -40,7 +40,8 @@ const Slider: React.FC<{ label: string, value: number, onChange: (e: React.Chang
 
 export const EconomicFabricView: React.FC = () => {
     const { t } = useLocalization();
-    const [userProfile, setUserProfile] = useState<UserEconomicProfile>({ tier: 'tier1', goldenKey: true });
+    // FIX: Added missing properties `isBankConnected` and `isSuspended` to the initial state to conform to the `UserEconomicProfile` type.
+    const [userProfile, setUserProfile] = useState<UserEconomicProfile>({ tier: 'tier1', goldenKey: true, isBankConnected: false, isSuspended: false });
     const [feeParams, setFeeParams] = useState<FeeCalculationParams>({
         usageFactor: 1.0,
         honestyDiscount: 0.2,

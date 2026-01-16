@@ -145,7 +145,6 @@ export const th = {
     dropOrClick: "วางรูปภาพที่นี่ หรือคลิกเพื่อเลือก",
     analyzing: "กำลังวิเคราะห์...",
     noImageUploaded: "กรุณาอัปโหลดรูปภาพเพื่อเริ่มการวิเคราะห์",
-    // FIX: Add missing User Profile keys
     // User Profile
     userProfile: "โปรไฟล์ผู้ใช้",
     user: "ผู้ใช้",
@@ -188,4 +187,25 @@ export const th = {
     fundInfrastructure: 'โครงสร้างพื้นฐานและการขยายระบบ',
     fundRsiLoop: 'วงจรการปรับปรุงตนเองแบบเรียกซ้ำ',
     complianceNote: 'การจัดสรรกองทุนอยู่ภายใต้กฎบัตร Aetherium เพื่อให้แน่ใจว่ามีการเติบโตที่ยั่งยืนและการปฏิบัติตามข้อกำหนด',
+    // Economic Sovereignty V1
+    financialSovereignty: 'อธิปไตยทางการเงิน',
+    connectAccount: 'เชื่อมต่อบัญชีธนาคาร',
+    accountConnected: 'เชื่อมต่อบัญชีแล้ว',
+    manageConnection: 'จัดการการเชื่อมต่อ',
+    billingCycle: 'การจำลองรอบบิล',
+    simulateBilling: 'จำลองรอบบิลรายเดือน',
+    tierSuspended: 'ระดับชั้นถูกระงับ',
+    paymentFailedMessage: 'การชำระเงินล้มเหลว ฟังก์ชันระดับสูงถูกระงับ กรุณาแก้ไขปัญหาการชำระเงินของคุณ',
+    connectBankTitle: 'อนุญาตการเชื่อมต่อ',
+    connectBankMessage: 'คุณกำลังจะสร้างการเชื่อมต่อที่ปลอดภัยไปยังสถาบันการเงินของคุณสำหรับการเรียกเก็บเงินรายเดือนอัตโนมัติ การกระทำนี้สามารถยกเลิกได้',
+    connectAndAuthorize: 'เชื่อมต่อและอนุญาต',
+    connecting: 'กำลังเชื่อมต่อ...',
+    notifBankConnectedTitle: 'การเชื่อมต่อสำเร็จ',
+    notifBankConnectedMessage: 'บัญชีธนาคารของคุณถูกเชื่อมโยงเรียบร้อยแล้ว',
+    notifBillingSuccessTitle: 'ชำระเงินเรียบร้อยแล้ว',
+    notifBillingSuccessMessage: 'ค่าบริการรายเดือนของคุณถูกดำเนินการเรียบร้อยแล้ว',
+    notifBillingFailedTitle: 'การชำระเงินล้มเหลว',
+    notifBillingFailedMessage: 'ไม่สามารถดำเนินการชำระเงินได้ ฟังก์ชันระดับสูงถูกระงับการใช้งาน',
+    notifBillingNotConnectedTitle: 'ต้องการการดำเนินการ',
+    notifBillingNotConnectedMessage: 'กรุณาเชื่อมต่อบัญชีธนาคารเพื่อเปิดใช้งานรอบบิล',
 };

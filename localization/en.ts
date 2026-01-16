@@ -145,7 +145,6 @@ export const en = {
     dropOrClick: "Drop an image here, or click to select",
     analyzing: "Analyzing...",
     noImageUploaded: "Please upload an image to begin analysis.",
-    // FIX: Add missing User Profile keys
     // User Profile
     userProfile: "User Profile",
     user: "User",
@@ -188,4 +187,25 @@ export const en = {
     fundInfrastructure: 'Infrastructure & Scaling',
     fundRsiLoop: 'Recursive Self-Improvement Loop',
     complianceNote: 'Fund allocation is governed by the Aetherium charter to ensure sustainable growth and compliance.',
+    // Economic Sovereignty V1
+    financialSovereignty: 'Financial Sovereignty',
+    connectAccount: 'Connect Bank Account',
+    accountConnected: 'Bank Account Connected',
+    manageConnection: 'Manage Connection',
+    billingCycle: 'Billing Cycle Simulation',
+    simulateBilling: 'Simulate Monthly Cycle',
+    tierSuspended: 'Tier Suspended',
+    paymentFailedMessage: 'Payment failed. Higher-tier functions are suspended. Please resolve your billing issue.',
+    connectBankTitle: 'Authorize Connection',
+    connectBankMessage: 'You are about to establish a secure connection to your financial institution for automated monthly billing. This is a reversible action.',
+    connectAndAuthorize: 'Connect & Authorize',
+    connecting: 'Connecting...',
+    notifBankConnectedTitle: 'Connection Successful',
+    notifBankConnectedMessage: 'Your bank account has been successfully linked.',
+    notifBillingSuccessTitle: 'Payment Processed',
+    notifBillingSuccessMessage: 'Your monthly fee has been successfully processed.',
+    notifBillingFailedTitle: 'Payment Failed',
+    notifBillingFailedMessage: 'Could not process payment. High-tier functions are now suspended.',
+    notifBillingNotConnectedTitle: 'Action Required',
+    notifBillingNotConnectedMessage: 'Please connect a bank account to enable billing cycles.',
 };

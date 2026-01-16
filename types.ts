@@ -81,7 +81,8 @@ export type AetherEventType =
     | 'FIRMA_NODE_SELECTED'
     | 'WISDOM_FETCH_START'
     | 'WISDOM_FETCH_END'
-    | 'SIMULATE_IMPACT';
+    | 'SIMULATE_IMPACT'
+    | 'TIER_SUSPENSION_TRIGGERED';
 
 // Represents the "Vector-Only Handshake" payload
 export interface IntentVector {
@@ -140,7 +141,7 @@ export interface ModelConfig {
 
 export type UserRole = 'leadDeveloper' | 'juniorDeveloper' | 'qaEngineer';
 
-// Economic Fabric Types
+// --- Economic Fabric Types ---
 export type TierId = 'tier1' | 'tier2' | 'tier3' | 'tier4' | 'tier5';
 
 export interface Tier {
@@ -160,4 +161,28 @@ export interface FeeCalculationParams {
 export interface UserEconomicProfile {
     tier: TierId;
     goldenKey: boolean;
+    isBankConnected: boolean;
+    isSuspended: boolean;
+}
+
+export interface EconomicContract {
+    userId: string;
+    tierLevel: 1 | 2 | 3 | 4 | 5;
+    monthlyCycle: 30;
+    autoDebitEnabled: boolean;
+    connectedBankSignature: string;
+}
+
+export interface TransactionOutcome {
+    status: 'APPROVED' | 'REJECTED';
+    calculatedFee: number;
+    honestyBonus: number;
+    action: 'SUSPEND_HIGH_TIER' | 'CONTINUE_FLOW';
+}
+
+export interface Notification {
+    id: number;
+    title: TranslationKey;
+    message: TranslationKey;
+    type: 'success' | 'error' | 'info';
 }

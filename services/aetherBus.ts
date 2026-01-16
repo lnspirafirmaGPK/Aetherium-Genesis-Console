@@ -54,6 +54,7 @@ export class AetherBus implements IAetherBus {
                 );
             case 'WISDOM_FETCH_START':
             case 'WISDOM_FETCH_END':
+            case 'TIER_SUSPENSION_TRIGGERED':
                  return true; // No payload to validate
             default:
                 console.warn(`[AetherBus] No validation rule for eventType: ${eventType}`);
@@ -103,6 +104,8 @@ export class AetherBus implements IAetherBus {
                 return { intent: 'STATE_CHANGE_THINKING', targetId: 'WisdomEngine' };
             case 'WISDOM_FETCH_END':
                 return { intent: 'STATE_CHANGE_IDLE', targetId: 'WisdomEngine' };
+            case 'TIER_SUSPENSION_TRIGGERED':
+                return { intent: 'STATE_CHANGE_NIRODHA', targetId: 'EconomicFabric' };
             default:
                  // For unknown intents, create a null-vector. Do not leak the original payload.
                  return {
