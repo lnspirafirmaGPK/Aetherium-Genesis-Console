@@ -1,10 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { GoogleGenAI, LiveServerMessage, Blob } from '@google/genai';
+import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob } from '@google/genai';
 import { useLocalization } from '../contexts/LocalizationContext';
 import { CloseIcon, MicrophoneIcon, SpinnerIcon, CheckCircleIcon, DownloadIcon } from './icons';
 
+// FIX: Add webkitAudioContext to the Window interface to support Safari and older browsers.
+declare global {
+    interface Window {
+        webkitAudioContext: typeof AudioContext;
+    }
+}
+
 // --- Audio Encoding/Decoding Helpers ---
-// NOTE: These are simplified for this context and should be robust in production.
 const encode = (bytes: Uint8Array): string => {
   let binary = '';
   const len = bytes.byteLength;
@@ -18,7 +24,8 @@ const createBlob = (data: Float32Array): Blob => {
   const l = data.length;
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
-    int16[i] = data[i] < 0 ? data[i] * 0x8000 : data[i] * 0x7FFF;
+    const s = Math.max(-1, Math.min(1, data[i]));
+    int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
   }
   return {
     data: encode(new Uint8Array(int16.buffer)),
@@ -35,10 +42,11 @@ interface AetherCanvasProps {
 type GenesisStatus = 'READY' | 'LISTENING' | 'PROCESSING' | 'GENERATING' | 'PAUSED' | 'FINALIZED' | 'ERROR';
 
 // --- Particle Physics Constants ---
-const PARTICLE_COUNT = 3000;
+const PARTICLE_COUNT = 5000;
 const PARTICLE_DRAG = 0.95;
 const PARTICLE_ATTRACTION = 0.03;
 const PARTICLE_TURBULENCE = 0.1;
+const PARTICLE_COLOR = 'rgba(200, 225, 255, 0.7)';
 
 export const AetherCanvas: React.FC<AetherCanvasProps> = ({ onExit }) => {
     const { t } = useLocalization();
@@ -46,72 +54,115 @@ export const AetherCanvas: React.FC<AetherCanvasProps> = ({ onExit }) => {
     const [error, setError] = useState<string | null>(null);
     const [transcript, setTranscript] = useState('');
     const [finalizedImage, setFinalizedImage] = useState<string | null>(null);
+    const [imagePixelTargets, setImagePixelTargets] = useState<{ x: number, y: number }[] | null>(null);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const particlesRef = useRef<any[]>([]);
-    const imageAttractorsRef = useRef<any[]>([]);
     const animationFrameId = useRef<number | null>(null);
-
-    const sessionPromiseRef = useRef<Promise<any> | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
+    const mediaStreamRef = useRef<MediaStream | null>(null);
     const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
-    const mediaStreamSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-    
-    // --- Canvas Animation Logic ---
-    const runAnimation = useCallback(() => {
-        const canvas = canvasRef.current;
-        const context = canvas?.getContext('2d');
-        if (!canvas || !context) return;
-        
-        const parent = canvas.parentElement;
-        if(!parent) return;
+    const liveSessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
+    const aiRef = useRef<GoogleGenAI | null>(null);
 
-        const width = parent.clientWidth;
-        const height = parent.clientHeight;
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-        context.scale(dpr, dpr);
-        
-        if (particlesRef.current.length === 0) {
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                particlesRef.current.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: 0,
-                    vy: 0,
-                });
-            }
+    useEffect(() => {
+        try {
+            if (!process.env.API_KEY) throw new Error("API key is not configured.");
+            aiRef.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        } catch (e: any) {
+            console.error(e);
+            setError(t('connectionError'));
+            setStatus('ERROR');
         }
+    }, [t]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (!context) return;
+
+        const resizeCanvas = () => {
+            const parent = canvas.parentElement;
+            if (!parent) return;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = parent.clientWidth * dpr;
+            canvas.height = parent.clientHeight * dpr;
+            canvas.style.width = `${parent.clientWidth}px`;
+            canvas.style.height = `${parent.clientHeight}px`;
+            context.scale(dpr, dpr);
+        };
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const width = canvas.width / (window.devicePixelRatio || 1);
+        const height = canvas.height / (window.devicePixelRatio || 1);
+
+        particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
+            x: width / 2,
+            y: height / 2,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            targetX: Math.random() * width,
+            targetY: Math.random() * height,
+        }));
 
         const animate = () => {
-            context.fillStyle = 'rgba(16, 23, 42, 0.2)'; // Fading trail effect
-            context.fillRect(0, 0, width, height);
-            
-            particlesRef.current.forEach(p => {
-                let targetX = width / 2;
-                let targetY = height / 2;
-                let attraction = PARTICLE_ATTRACTION / 5;
+            const currentWidth = canvas.width / (window.devicePixelRatio || 1);
+            const currentHeight = canvas.height / (window.devicePixelRatio || 1);
 
-                if (imageAttractorsRef.current.length > 0) {
-                    // Move towards a random attractor from the image
-                    const attractor = imageAttractorsRef.current[Math.floor(Math.random() * imageAttractorsRef.current.length)];
-                    targetX = attractor.x;
-                    targetY = attractor.y;
-                    attraction = PARTICLE_ATTRACTION;
-                } else if (status === 'GENERATING' || status === 'PROCESSING') {
-                     // Swirl while thinking
-                     const angle = Date.now() * 0.001 + (p.x * 0.1);
-                     targetX = width / 2 + Math.cos(angle) * 100;
-                     targetY = height / 2 + Math.sin(angle) * 100;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (finalizedImage && status === 'FINALIZED') {
+                const img = new Image();
+                img.src = finalizedImage;
+                if (img.complete) {
+                     const aspectRatio = img.width / img.height;
+                     let drawWidth = currentWidth;
+                     let drawHeight = currentWidth / aspectRatio;
+                     if (drawHeight > currentHeight) {
+                         drawHeight = currentHeight;
+                         drawWidth = currentHeight * aspectRatio;
+                     }
+                     const x = (currentWidth - drawWidth) / 2;
+                     const y = (currentHeight - drawHeight) / 2;
+                     context.drawImage(img, x, y, drawWidth, drawHeight);
                 }
-                
-                const dx = targetX - p.x;
-                const dy = targetY - p.y;
-                p.vx += dx * attraction;
-                p.vy += dy * attraction;
+            }
+            
+            if (finalizedImage && status === 'PAUSED') {
+                 const img = new Image();
+                 img.src = finalizedImage;
+                 if (img.complete) {
+                    context.globalAlpha = 0.2;
+                    const aspectRatio = img.width / img.height;
+                    let drawWidth = currentWidth;
+                    let drawHeight = currentWidth / aspectRatio;
+                    if (drawHeight > currentHeight) {
+                        drawHeight = currentHeight;
+                        drawWidth = currentHeight * aspectRatio;
+                    }
+                    const x = (currentWidth - drawWidth) / 2;
+                    const y = (currentHeight - drawHeight) / 2;
+                    context.drawImage(img, x, y, drawWidth, drawHeight);
+                    context.globalAlpha = 1.0;
+                 }
+            }
+
+            context.fillStyle = PARTICLE_COLOR;
+            particlesRef.current.forEach((p, i) => {
+                let target = { x: p.targetX, y: p.targetY };
+                if (imagePixelTargets && imagePixelTargets.length > 0) {
+                   target = imagePixelTargets[i % imagePixelTargets.length];
+                } else if (status === 'GENERATING') {
+                   target = { x: currentWidth / 2, y: currentHeight / 2 };
+                }
+
+                const dx = target.x - p.x;
+                const dy = target.y - p.y;
+                p.vx += dx * PARTICLE_ATTRACTION;
+                p.vy += dy * PARTICLE_ATTRACTION;
                 p.vx += (Math.random() - 0.5) * PARTICLE_TURBULENCE;
                 p.vy += (Math.random() - 0.5) * PARTICLE_TURBULENCE;
                 p.vx *= PARTICLE_DRAG;
@@ -119,145 +170,51 @@ export const AetherCanvas: React.FC<AetherCanvasProps> = ({ onExit }) => {
                 p.x += p.vx;
                 p.y += p.vy;
                 
-                // Boundaries
-                if (p.x < 0 || p.x > width) p.vx *= -1;
-                if (p.y < 0 || p.y > height) p.vy *= -1;
-
-                context.fillStyle = 'rgba(0, 255, 255, 0.7)';
-                context.fillRect(p.x, p.y, 1, 1);
+                context.beginPath();
+                context.arc(p.x, p.y, 1, 0, Math.PI * 2);
+                context.fill();
             });
-            
+
             animationFrameId.current = requestAnimationFrame(animate);
         };
-        
         animate();
-    }, [status]);
 
-    useEffect(() => {
-        runAnimation();
         return () => {
+            window.removeEventListener('resize', resizeCanvas);
             if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
         };
-    }, [runAnimation]);
-
-    // --- Image Generation Logic ---
-    const generateImage = async (prompt: string) => {
-        if (!prompt) return;
-        setStatus('GENERATING');
-        setFinalizedImage(null);
-        imageAttractorsRef.current = [];
-
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-pro-image-preview',
-                contents: { parts: [{ text: prompt }] },
-                config: { tools: [{ google_search: {} }] }
-            });
-
-            const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-            if (part?.inlineData) {
-                const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                setFinalizedImage(imageUrl);
-                
-                const img = new Image();
-                img.onload = () => {
-                    const offscreenCanvas = document.createElement('canvas');
-                    const aspect = img.width / img.height;
-                    const canvas = canvasRef.current;
-                    if(!canvas) return;
-
-                    let w = canvas.width / 2;
-                    let h = w / aspect;
-                    if(h > canvas.height / 2) {
-                        h = canvas.height / 2;
-                        w = h * aspect;
-                    }
-
-                    offscreenCanvas.width = w;
-                    offscreenCanvas.height = h;
-                    const ctx = offscreenCanvas.getContext('2d');
-                    if(!ctx) return;
-
-                    ctx.drawImage(img, 0, 0, w, h);
-                    const imageData = ctx.getImageData(0, 0, w, h);
-                    const newAttractors = [];
-                    const offsetX = (canvas.width / 2 - w) / 2;
-                    const offsetY = (canvas.height / 2 - h) / 2;
-                    for (let i = 0; i < imageData.data.length; i += 4 * 8) { // Sample every 8th pixel
-                        const brightness = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-                        if (brightness > 100) { // Threshold
-                            const x = (i / 4) % w;
-                            const y = Math.floor((i / 4) / w);
-                            newAttractors.push({ x: x + offsetX, y: y + offsetY });
-                        }
-                    }
-                    imageAttractorsRef.current = newAttractors;
-                };
-                img.src = imageUrl;
-
-                setStatus('PAUSED');
-            } else {
-                setError(t('noImageGeneratedError'));
-                setStatus('ERROR');
-            }
-        } catch (e) {
-            console.error(e);
-            setError(t('imageGenerationError'));
-            setStatus('ERROR');
-        }
-    };
-    
-    // --- Voice Session Logic ---
-    const stopListening = useCallback(() => {
-        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-            audioContextRef.current.close();
-        }
-        if (scriptProcessorRef.current) {
-            scriptProcessorRef.current.disconnect();
-        }
-        if(mediaStreamSourceRef.current) {
-            mediaStreamSourceRef.current.disconnect();
-        }
-        if (sessionPromiseRef.current) {
-           sessionPromiseRef.current.then(session => session.close());
-           sessionPromiseRef.current = null;
-        }
-        if (status === 'LISTENING') {
-            setStatus('PROCESSING');
-            generateImage(transcript);
-        }
-    }, [transcript, status, t]);
-
+    }, [status, finalizedImage, imagePixelTargets]);
 
     const startListening = useCallback(async () => {
+        if (!aiRef.current) return;
+        setStatus('LISTENING');
         setError(null);
         setTranscript('');
-        setStatus('LISTENING');
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            mediaStreamRef.current = stream;
+            // FIX: The error on this line is resolved by the global Window interface declaration at the top of the file.
+            const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            audioContextRef.current = context;
             
-            sessionPromiseRef.current = ai.live.connect({
+            liveSessionPromiseRef.current = aiRef.current.live.connect({
                 model: 'gemini-2.5-flash-native-audio-preview-12-25',
-                config: { inputAudioTranscription: {} },
                 callbacks: {
                     onopen: () => {
-                        // FIX: Cast `window` to `any` to allow access to the non-standard `webkitAudioContext` for Safari compatibility, resolving a TypeScript type error.
-                        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-                        scriptProcessorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-                        mediaStreamSourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
-
-                        scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
+                        const source = context.createMediaStreamSource(stream);
+                        const processor = context.createScriptProcessor(4096, 1, 1);
+                        scriptProcessorRef.current = processor;
+                        
+                        processor.onaudioprocess = (audioProcessingEvent) => {
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
-                            sessionPromiseRef.current?.then((session) => {
+                            liveSessionPromiseRef.current?.then((session) => {
                                 session.sendRealtimeInput({ media: pcmBlob });
                             });
                         };
-                        
-                        mediaStreamSourceRef.current.connect(scriptProcessorRef.current);
-                        scriptProcessorRef.current.connect(audioContextRef.current.destination);
+                        source.connect(processor);
+                        processor.connect(context.destination);
                     },
                     onmessage: (message: LiveServerMessage) => {
                         if (message.serverContent?.inputTranscription) {
@@ -268,11 +225,12 @@ export const AetherCanvas: React.FC<AetherCanvasProps> = ({ onExit }) => {
                         console.error('Live session error:', e);
                         setError(t('connectionError'));
                         setStatus('ERROR');
-                        stopListening();
                     },
-                    onclose: () => {
-                        stream.getTracks().forEach(track => track.stop());
-                    },
+                    onclose: () => {},
+                },
+                config: {
+                    inputAudioTranscription: {},
+                    responseModalities: [],
                 },
             });
 
@@ -281,104 +239,181 @@ export const AetherCanvas: React.FC<AetherCanvasProps> = ({ onExit }) => {
             setError(t('micError'));
             setStatus('ERROR');
         }
-    }, [t, stopListening]);
+    }, [t]);
+
+    const stopListeningAndProcess = useCallback(async () => {
+        setStatus('PROCESSING');
+        
+        liveSessionPromiseRef.current?.then(session => session.close());
+        scriptProcessorRef.current?.disconnect();
+        audioContextRef.current?.close();
+        mediaStreamRef.current?.getTracks().forEach(track => track.stop());
+        liveSessionPromiseRef.current = null;
+
+        if (!transcript.trim()) {
+            setStatus('READY');
+            return;
+        }
+
+        setStatus('GENERATING');
+        setFinalizedImage(null);
+        setImagePixelTargets(null);
+
+        try {
+            if (!aiRef.current) throw new Error("AI not initialized");
+
+            const response = await aiRef.current.models.generateContent({
+                model: 'gemini-3-pro-image-preview',
+                contents: { parts: [{ text: transcript }] },
+                config: { imageConfig: { aspectRatio: '16:9' } },
+            });
+            
+            let foundImage = false;
+            for (const part of response.candidates?.[0]?.content?.parts ?? []) {
+                if (part.inlineData) {
+                    const base64Data = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    setFinalizedImage(base64Data);
+                    
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = canvasRef.current;
+                        if (!canvas) return;
+                        const parent = canvas.parentElement;
+                        if (!parent) return;
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                        if (!ctx) return;
+                        
+                        const canvasWidth = parent.clientWidth;
+                        const canvasHeight = parent.clientHeight;
+                        
+                        const aspectRatio = img.width / img.height;
+                        let drawWidth = canvasWidth;
+                        let drawHeight = canvasWidth / aspectRatio;
+                        if (drawHeight > canvasHeight) {
+                           drawHeight = canvasHeight;
+                           drawWidth = canvasHeight * aspectRatio;
+                        }
+
+                        const xOffset = (canvasWidth - drawWidth) / 2;
+                        const yOffset = (canvasHeight - drawHeight) / 2;
+                        
+                        const offscreenCanvas = document.createElement('canvas');
+                        offscreenCanvas.width = drawWidth;
+                        offscreenCanvas.height = drawHeight;
+                        const offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+                        if(!offscreenCtx) return;
+
+                        offscreenCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
+                        const imageData = offscreenCtx.getImageData(0, 0, drawWidth, drawHeight);
+                        
+                        const newTargets = [];
+                        const step = 4;
+                        for (let y = 0; y < imageData.height; y += step) {
+                            for (let x = 0; x < imageData.width; x += step) {
+                                const index = (y * imageData.width + x) * 4;
+                                const brightness = (imageData.data[index] + imageData.data[index+1] + imageData.data[index+2]) / 3;
+                                if (brightness > 80 && Math.random() > 0.5) { 
+                                    newTargets.push({ x: x + xOffset, y: y + yOffset });
+                                }
+                            }
+                        }
+                        setImagePixelTargets(newTargets);
+                    };
+                    img.src = base64Data;
+                    
+                    setStatus('PAUSED');
+                    foundImage = true;
+                    break;
+                }
+            }
+
+            if (!foundImage) throw new Error(t('noImageGeneratedError'));
+        } catch (e: any) {
+            console.error(e);
+            setError(e.message || t('imageGenerationError'));
+            setStatus('ERROR');
+        }
+
+    }, [transcript, t]);
 
     const handleMicClick = () => {
-        if (status === 'LISTENING') {
-            stopListening();
-        } else {
-            startListening();
-        }
+        if (status === 'LISTENING') stopListeningAndProcess();
+        else startListening();
     };
     
-    const handleFinalize = () => {
-      setStatus('FINALIZED');
-      imageAttractorsRef.current = [];
-    }
-
-    const handleSaveImage = () => {
+    const handleFinalize = () => setStatus('FINALIZED');
+    
+    const handleSave = () => {
         if (finalizedImage) {
             const link = document.createElement('a');
             link.href = finalizedImage;
-            link.download = `aether-genesis-${Date.now()}.png`;
+            link.download = `aetherium-genesis-${Date.now()}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
     };
-    
+
     const handleExit = () => {
-        stopListening();
+        liveSessionPromiseRef.current?.then(session => session.close());
+        scriptProcessorRef.current?.disconnect();
+        audioContextRef.current?.close();
+        mediaStreamRef.current?.getTracks().forEach(track => track.stop());
         onExit();
     };
 
-    const StatusDisplay = () => {
-        let text = '';
-        switch(status){
-            case 'READY': text = t('speakPrompt'); break;
-            case 'LISTENING': text = t('listening'); break;
-            case 'PROCESSING': text = t('processing'); break;
-            case 'GENERATING': text = t('generating'); break;
-            case 'PAUSED': text = 'Generation complete. Awaiting command.'; break;
-            case 'FINALIZED': text = 'Creation finalized.'; break;
-            case 'ERROR': text = error || 'An unknown error occurred.'; break;
+    const renderStatus = () => {
+        switch (status) {
+            case 'READY': return t('speakPrompt');
+            case 'LISTENING': return t('listening');
+            case 'PROCESSING': return t('processing');
+            case 'GENERATING': return t('generating');
+            case 'PAUSED': return t('ready');
+            case 'FINALIZED': return t('ready');
+            case 'ERROR': return error || t('error');
         }
-        return <p className={`text-center transition-opacity duration-300 ${status === 'LISTENING' ? 'text-red-400' : 'text-gray-400'}`}>{text}</p>;
-    }
+    };
 
     return (
-        <div className="relative w-full h-full flex flex-col bg-gray-900">
+        <div className="absolute inset-0 bg-black flex flex-col">
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-            <div className="absolute inset-0 flex flex-col p-4">
-                <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-lg text-cyan-400">{t('genesisProtocol')}</h3>
-                    <button onClick={handleExit} className="p-2 text-gray-400 hover:text-white"><CloseIcon className="w-5 h-5"/></button>
+            <div className="absolute inset-0 flex flex-col p-6 pointer-events-none">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h2 className="text-2xl font-bold text-cyan-400">{t('genesisProtocol')}</h2>
+                        <p className="text-gray-400">{t('voiceCommand')}</p>
+                    </div>
+                    <button onClick={handleExit} className="p-2 bg-gray-800/50 rounded-full hover:bg-gray-700/80 transition-colors pointer-events-auto">
+                        <CloseIcon className="w-6 h-6 text-white" />
+                    </button>
+                </div>
+                
+                <div className="flex-grow flex items-center justify-center text-center">
+                    <div className="max-w-3xl">
+                        <p className={`transition-opacity duration-300 text-3xl font-light ${status === 'LISTENING' || status === 'PROCESSING' ? 'text-cyan-300' : 'text-gray-400'}`}>
+                            {transcript || renderStatus()}
+                        </p>
+                    </div>
                 </div>
 
-                <div className="flex-grow flex items-center justify-center">
-                    {finalizedImage && (
-                        <img 
-                            src={finalizedImage} 
-                            alt={transcript}
-                            className={`transition-opacity duration-500 max-w-full max-h-full object-contain ${status === 'FINALIZED' ? 'opacity-100' : 'opacity-30'}`}
-                         />
+                <div className="flex justify-center items-center space-x-6">
+                    <button onClick={handleMicClick} disabled={status === 'PROCESSING' || status === 'GENERATING'} className="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center border-2 border-transparent hover:border-cyan-400 transition-all duration-300 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                        {status === 'LISTENING' && <div className="w-10 h-10 bg-red-500 rounded-full animate-pulse" />}
+                        {(status === 'PROCESSING' || status === 'GENERATING') && <SpinnerIcon className="w-10 h-10 text-cyan-400 animate-spin" />}
+                        {status !== 'LISTENING' && status !== 'PROCESSING' && status !== 'GENERATING' && <MicrophoneIcon className="w-10 h-10 text-white" />}
+                    </button>
+                    {(status === 'PAUSED' || status === 'FINALIZED') && finalizedImage && (
+                        <>
+                            <button onClick={handleFinalize} className="flex items-center space-x-2 px-6 py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-500/80 transition-colors pointer-events-auto">
+                                <CheckCircleIcon className="w-6 h-6" />
+                                <span>{t('finalize')}</span>
+                            </button>
+                             <button onClick={handleSave} className="flex items-center space-x-2 px-6 py-3 bg-blue-600/80 text-white rounded-lg hover:bg-blue-500/80 transition-colors pointer-events-auto">
+                                <DownloadIcon className="w-6 h-6" />
+                                <span>{t('saveImage')}</span>
+                            </button>
+                        </>
                     )}
-                </div>
-
-                <div className="w-full mt-auto space-y-3">
-                    <div className="bg-black/50 backdrop-blur-sm p-3 rounded-lg text-center min-h-[4em]">
-                        <p className="text-gray-200">{transcript}</p>
-                    </div>
-                    <div className="bg-black/50 backdrop-blur-sm p-3 rounded-lg">
-                        <StatusDisplay/>
-                    </div>
-                    <div className="flex justify-center items-center gap-4">
-                        <button 
-                            onClick={handleMicClick}
-                            className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors
-                                ${status === 'LISTENING' ? 'bg-red-500 hover:bg-red-600' : 'bg-cyan-500 hover:bg-cyan-600'}
-                                disabled:bg-gray-600 disabled:cursor-not-allowed`}
-                            disabled={status === 'GENERATING' || status === 'PROCESSING' || status === 'FINALIZED'}
-                        >
-                            {status === 'GENERATING' || status === 'PROCESSING' ? (
-                               <SpinnerIcon className="w-8 h-8 text-white animate-spin" />
-                            ) : (
-                               <MicrophoneIcon className="w-8 h-8 text-white" />
-                            )}
-                        </button>
-                        {status === 'PAUSED' && (
-                            <button onClick={handleFinalize} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md flex items-center">
-                                <CheckCircleIcon className="w-5 h-5 mr-2" />
-                                {t('finalize')}
-                            </button>
-                        )}
-                        {status === 'FINALIZED' && (
-                             <button onClick={handleSaveImage} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-md flex items-center">
-                                <DownloadIcon className="w-5 h-5 mr-2" />
-                                {t('saveImage')}
-                            </button>
-                        )}
-                    </div>
                 </div>
             </div>
         </div>
