@@ -82,7 +82,8 @@ export type AetherEventType =
     | 'WISDOM_FETCH_START'
     | 'WISDOM_FETCH_END'
     | 'SIMULATE_IMPACT'
-    | 'TIER_SUSPENSION_TRIGGERED';
+    | 'TIER_SUSPENSION_TRIGGERED'
+    | 'SOFT_CORRECTION_REQUIRED';
 
 // Represents the "Vector-Only Handshake" payload
 export interface IntentVector {
@@ -214,4 +215,20 @@ export interface SearchableModule {
     description: string;
     tab: AppTab | 'aether-canvas';
     icon: string;
+}
+
+// --- Audit Gate & RSI Types ---
+export interface AuditLogEntry {
+    id: string;
+    timestamp: number;
+    actionType: string;
+    payload: any;
+    status: 'APPROVED' | 'BLOCKED';
+    principle: 'PRINCIPLE_A_NON_HARM' | 'N/A';
+    reason?: string;
+}
+
+export interface AuditResult {
+    approved: boolean;
+    reason?: string;
 }

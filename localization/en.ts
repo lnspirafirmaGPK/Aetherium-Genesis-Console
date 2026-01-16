@@ -342,4 +342,7 @@ export const en = {
     nominal: "Nominal",
     warning: "Warning",
     critical: "Critical",
+    // FIX: Add missing translation keys for soft correction notification
+    softCorrectionTitle: "Agent Intent Corrected",
+    softCorrectionMessage: "An AI agent action was automatically corrected by the system. Reason: {data}",
 };

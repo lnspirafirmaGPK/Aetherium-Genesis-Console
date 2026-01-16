@@ -342,4 +342,7 @@ export const th = {
     nominal: "ปกติ",
     warning: "คำเตือน",
     critical: "วิกฤต",
+    // FIX: Add missing translation keys for soft correction notification
+    softCorrectionTitle: "แก้ไขเจตนาของเอเจนต์",
+    softCorrectionMessage: "การกระทำของเอเจนต์ AI ถูกแก้ไขโดยระบบโดยอัตโนมัติ เหตุผล: {data}",
 };

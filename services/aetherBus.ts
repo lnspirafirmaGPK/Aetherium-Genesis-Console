@@ -56,6 +56,12 @@ export class AetherBus implements IAetherBus {
             case 'WISDOM_FETCH_END':
             case 'TIER_SUSPENSION_TRIGGERED':
                  return true; // No payload to validate
+            case 'SOFT_CORRECTION_REQUIRED':
+                return (
+                    payload &&
+                    typeof payload.blockedAction === 'string' &&
+                    typeof payload.reason === 'string'
+                );
             default:
                 console.warn(`[AetherBus] No validation rule for eventType: ${eventType}`);
                 return true;
@@ -106,6 +112,13 @@ export class AetherBus implements IAetherBus {
                 return { intent: 'STATE_CHANGE_IDLE', targetId: 'WisdomEngine' };
             case 'TIER_SUSPENSION_TRIGGERED':
                 return { intent: 'STATE_CHANGE_NIRODHA', targetId: 'EconomicFabric' };
+            case 'SOFT_CORRECTION_REQUIRED':
+                return {
+                    intent: 'CORRECT_AGENT_INTENT',
+                    targetId: rawPayload.origin || 'PangenesAgent',
+                    reason: rawPayload.reason,
+                    blockedAction: rawPayload.blockedAction,
+                };
             default:
                  // For unknown intents, create a null-vector. Do not leak the original payload.
                  return {

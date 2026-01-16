@@ -193,6 +193,12 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const aetherBus = AetherBus.getInstance();
+        
+        const handleSoftCorrection = (envelope: any) => {
+            addNotification('softCorrectionTitle', 'softCorrectionMessage', 'info', envelope.payload.reason);
+        };
+        const unsubSoftCorrection = aetherBus.subscribe('SOFT_CORRECTION_REQUIRED', handleSoftCorrection);
+
         const handleProtocolExecution = (envelope: any) => {
             if (isDevMode) return;
             const taskId = envelope.payload.targetId as string;
@@ -238,8 +244,17 @@ const App: React.FC = () => {
         const unsubWisdomEnd = aetherBus.subscribe('WISDOM_FETCH_END', handleWisdomEnd);
         const unsubSimulator = aetherBus.subscribe('SIMULATE_IMPACT', handleSimulateImpact);
         const unsubSuspension = aetherBus.subscribe('TIER_SUSPENSION_TRIGGERED', handleTierSuspension);
-        return () => { unsubMechanic(); unsubCore(); unsubWisdomStart(); unsubWisdomEnd(); unsubSimulator(); unsubSuspension(); };
-    }, [files, allTasks, isRefactoring, isDevMode, analysisResult]);
+        
+        return () => { 
+            unsubMechanic(); 
+            unsubCore(); 
+            unsubWisdomStart(); 
+            unsubWisdomEnd(); 
+            unsubSimulator(); 
+            unsubSuspension(); 
+            unsubSoftCorrection();
+        };
+    }, [files, allTasks, isRefactoring, isDevMode, analysisResult, addNotification]);
 
     const handleScan = () => { runAnalysis(); handleFocusPanel('agent'); };
     
@@ -297,6 +312,7 @@ const App: React.FC = () => {
     
     const handleNavigateToModule = (tab: AppTab | 'aether-canvas') => {
         handleLaunchModule(tab);
+        setActiveView('ide');
     };
 
     const handleSelectFileFromSearch = (file: CodeFile) => {
