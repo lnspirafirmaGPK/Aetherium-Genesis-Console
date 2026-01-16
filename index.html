@@ -73,11 +73,6 @@
             transform: translateY(-5px);
         }
 
-        .module-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
         #login-screen {
             display: flex;
             justify-content: center;
@@ -94,29 +89,6 @@
             min-height: 100vh;
             position: relative;
             z-index: 1;
-        }
-
-        #hub-view {
-            display: none;
-            padding: 2rem;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-            overflow-y: auto;
-        }
-
-        .profile-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .profile-pic {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid rgba(139, 92, 246, 0.5);
         }
     </style>
     <script type="importmap">
@@ -171,193 +143,9 @@
         </div>
     </div>
 
-    <!-- Hub View (Nexus Hub) -->
-    <div id="hub-view">
-        <div class="fade-in">
-            <!-- Profile Header -->
-            <div class="glass-card p-6 mb-6">
-                <div class="profile-section">
-                    <img id="profile-pic" class="profile-pic" src="" alt="Profile">
-                    <div class="flex-1">
-                        <h2 class="text-2xl font-bold text-white" id="profile-name"></h2>
-                        <p class="text-gray-300" id="profile-email"></p>
-                        <p class="text-purple-400 text-sm" id="profile-role"></p>
-                    </div>
-                    <button onclick="logout()" class="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors">
-                        ออกจากระบบ
-                    </button>
-                </div>
-            </div>
-
-            <!-- Nexus Hub Title -->
-            <div class="text-center mb-8">
-                <h1 class="text-5xl font-bold text-white mb-2">โถงกลางแห่งการเชื่อมต่อ</h1>
-                <p class="text-xl text-purple-300">ประตูสู่ระบบนิเวศบริการระดับโลก</p>
-            </div>
-
-            <!-- Module Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                <!-- Firma IDE -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('firma-ide')">
-                    <div class="module-icon">💻</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Firma IDE</h3>
-                    <p class="text-gray-300 text-sm mb-4">สภาพแวดล้อมการพัฒนาแบบบูรณาการ</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• สารบบ Firma (File Explorer)</li>
-                        <li>• เอดิเตอร์โค้ด (Code Editor)</li>
-                        <li>• กราฟ Aetherium (Dependency Graph)</li>
-                    </ul>
-                </div>
-
-                <!-- PRGX Sentry & Mechanic -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('ai-core')">
-                    <div class="module-icon">🤖</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">AI Core</h3>
-                    <p class="text-gray-300 text-sm mb-4">ระบบวิเคราะห์และแก้ไขโค้ดอัจฉริยะ</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• PRGX Sentry (Code Analysis)</li>
-                        <li>• PRGX Mechanic (Refactoring)</li>
-                        <li>• Wisdom Engine (AI Insights)</li>
-                    </ul>
-                </div>
-                
-                 <!-- CLI Extension Hub -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('cli-extension')">
-                    <div class="module-icon">🖥️</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">CLI Extension Hub</h3>
-                    <p class="text-gray-300 text-sm mb-4">จำลองการพัฒนาและจัดการส่วนขยาย</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• การจัดการ Manifest</li>
-                        <li>• Slash Commands ที่กำหนดเอง</li>
-                        <li>• การเชื่อมต่อ MCP Server</li>
-                    </ul>
-                </div>
-
-                <!-- Image Genesis -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('image-genesis')">
-                    <div class="module-icon">🎨</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Image Genesis</h3>
-                    <p class="text-gray-300 text-sm mb-4">การสร้างภาพด้วย AI</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• สร้างภาพจากข้อความ</li>
-                        <li>• Gemini Pro Image Preview</li>
-                        <li>• การจัดการ API Keys</li>
-                    </ul>
-                </div>
-
-                <!-- Image Analysis -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('image-analysis')">
-                    <div class="module-icon">🔍</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Image Analysis</h3>
-                    <p class="text-gray-300 text-sm mb-4">วิเคราะห์ภาพด้วย AI</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• อัปโหลดและวิเคราะห์ภาพ</li>
-                        <li>• ตอบคำถามเกี่ยวกับภาพ</li>
-                        <li>• Gemini Pro Vision</li>
-                    </ul>
-                </div>
-
-                <!-- Aether Canvas (โปรโตคอลเจเนซิส) -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('aether-canvas')">
-                    <div class="module-icon">✨</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Aether Canvas</h3>
-                    <p class="text-gray-300 text-sm mb-4">โปรโตคอลเจเนซิส - การสร้างสรรค์ผ่านเสียง</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• Gemini Live API (Voice)</li>
-                        <li>• การสร้างภาพด้วยเสียง</li>
-                        <li>• Particle Animation (5,000 ดวงดาว)</li>
-                    </ul>
-                </div>
-
-                <!-- Data Fabric -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('data-fabric')">
-                    <div class="module-icon">🌐</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Data Fabric</h3>
-                    <p class="text-gray-300 text-sm mb-4">โครงสร้างข้อมูลและ Governance</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• Data Pipeline (Bronze/Silver/Gold)</li>
-                        <li>• Data Governance</li>
-                        <li>• การควบคุมสิทธิ์ตามบทบาท</li>
-                    </ul>
-                </div>
-
-                <!-- Economic Fabric (สถาปนิกเท่านั้น) -->
-                <div id="economic-module" class="glass-card p-6 cursor-pointer" onclick="openModule('economic-fabric')" style="display: none;">
-                    <div class="module-icon">💰</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Economic Fabric</h3>
-                    <p class="text-gray-300 text-sm mb-4">โครงข่ายเศรษฐกิจ (สถาปนิกเท่านั้น)</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• Tier-based Economy</li>
-                        <li>• Dynamic Pricing</li>
-                        <li>• Architectural Royalty</li>
-                    </ul>
-                </div>
-
-                <!-- AetherBus Monitor -->
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('aetherbus')">
-                    <div class="module-icon">⚡</div>
-                    <h3 class="text-2xl font-bold text-white mb-2">AetherBus Monitor</h3>
-                    <p class="text-gray-300 text-sm mb-4">ระบบสื่อสารภายใน</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>• Intent Vector Tracking</li>
-                        <li>• Light Pulse Simulator</li>
-                        <li>• AI Core Status (IDLE/THINKING/EXECUTING)</li>
-                    </ul>
-                </div>
-            </div>
-
-             <!-- Omni-Channel Network -->
-            <div class="text-center mt-16 mb-8">
-                <h2 class="text-4xl font-bold text-white mb-2">โครงข่าย Omni-Channel</h2>
-                <p class="text-lg text-purple-300">เชื่อมต่อทุกอุตสาหกรรมผ่านจุดเดียว</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto pb-8">
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('financial-nexus')">
-                    <div class="module-icon">💹</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Financial Nexus</h3>
-                    <p class="text-gray-300 text-xs">ตลาดทุน, หุ้น, และสินทรัพย์ดิจิทัล</p>
-                </div>
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('industrial-matrix')">
-                    <div class="module-icon">🏭</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Industrial Matrix</h3>
-                    <p class="text-gray-300 text-xs">ยานยนต์, พลังงาน, และการผลิต</p>
-                </div>
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('retail-logistics')">
-                    <div class="module-icon">🛒</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Retail & Logistics</h3>
-                    <p class="text-gray-300 text-xs">ค้าปลีก, FMCG, และซัพพลายเชน</p>
-                </div>
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('hardware-interface')">
-                    <div class="module-icon">🔌</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Hardware Interface</h3>
-                    <p class="text-gray-300 text-xs">เชื่อมต่อระดับชิปเซ็ตและฮาร์ดแวร์</p>
-                </div>
-                <div class="glass-card p-6 cursor-pointer" onclick="openModule('media-hub')">
-                    <div class="module-icon">🎬</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Global Media Hub</h3>
-                    <p class="text-gray-300 text-xs">Ecosystem ของ YouTube และสมาร์ทโฟน</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Module Modal -->
-    <div id="module-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" onclick="closeModal(event)">
-        <div class="glass-card p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-6">
-                <h2 id="modal-title" class="text-3xl font-bold text-white"></h2>
-                <button onclick="closeModal()" class="text-white hover:text-purple-400 text-3xl">&times;</button>
-            </div>
-            <div id="modal-content" class="text-gray-300"></div>
-        </div>
-    </div>
-
     <div id="root"></div>
 
     <script id="hub-script">
-        let userData = null;
-        let userRole = null;
         let appLaunched = false;
 
         // Create stars background
@@ -375,65 +163,48 @@
             }
         }
 
-        // Select role (architect or user)
+        // Select role and launch the main React application
         function selectRole(role) {
-            userRole = role;
-
+            let userData;
             if (role === 'architect') {
                 userData = {
                     name: 'Dr. Architect',
                     email: 'lnspirafirma@gmail.com',
-                    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2E4NWVmNyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgM3MtMS4zNCAzLTMgMy0zLTEuMzQtMy0zIDEuMzQtMyAzLTN6bTAgMTRjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'
+                    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2E4NWVmNyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC44OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgM3MtMS4zNCAzLTMgMy0zLTEuMzQtMy0zIDEuMzQtMyAzLTN6bTAgMTRjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'
                 };
             } else {
                  userData = {
                     name: 'General User',
                     email: 'general.user@example.com',
-                    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzRiYTVlYSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgM3MtMS4zNCAzLTMgMy0zLTEuMzQtMy0zIDEuMzQtMyAzLTN6bTAgMTRjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'
+                    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzRiYTVlYSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC44OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgM3MtMS4zNCAzLTMgMy0zLTEuMzQtMy0zIDEuMzQtMyAzLTN6bTAgMTRjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'
                 };
             }
             
-            document.getElementById('profile-pic').src = userData.picture;
-            document.getElementById('profile-name').textContent = userData.name;
-            document.getElementById('profile-email').textContent = userData.email;
-            document.getElementById('profile-role').textContent = role === 'architect' ? '🏛️ สถาปนิก' : '👤 ผู้ใช้ทั่วไป';
+            // Store user info for the React app
+            sessionStorage.setItem('loggedInUserEmail', userData.email);
+            sessionStorage.setItem('userRole', role);
+            sessionStorage.setItem('userName', userData.name);
+            sessionStorage.setItem('userPicture', userData.picture);
 
-            if (role === 'architect') {
-                document.getElementById('economic-module').style.display = 'block';
-            } else {
-                document.getElementById('economic-module').style.display = 'none';
-            }
-
-            document.getElementById('account-picker').style.display = 'none';
-            document.getElementById('hub-view').style.display = 'block';
+            launchApp();
         }
         
-        function launchApp(moduleName) {
-            if (appLaunched) {
-                alert("App is already running. Please reload to return to the hub and launch another module.");
-                return;
-            }
+        // Destroy pre-React UI and load the React application
+        function launchApp() {
+            if (appLaunched) return;
             appLaunched = true;
-
-            sessionStorage.setItem('loggedInUserEmail', userData.email);
-            sessionStorage.setItem('userRole', userRole);
-            sessionStorage.setItem('initialModule', moduleName);
 
             document.body.style.transition = 'opacity 0.5s ease-out';
             document.body.style.opacity = '0';
 
             setTimeout(() => {
-                // Remove all hub-specific elements from the body
+                // Remove all pre-React elements from the body
                 document.getElementById('stars')?.remove();
                 document.getElementById('login-screen')?.remove();
                 document.getElementById('account-picker')?.remove();
-                document.getElementById('hub-view')?.remove();
-                document.getElementById('module-modal')?.remove();
-                // Also remove the script tag we are currently in
                 document.getElementById('hub-script')?.remove();
 
-                // The <div id="root"></div> already exists.
-                // We just need to set the final body styles.
+                // Set the final body styles for the React app
                 document.body.style.background = '#0f172a';
                 document.body.style.overflow = 'hidden';
                 document.body.style.opacity = '1';
@@ -446,270 +217,12 @@
             }, 500);
         }
 
-        // Open module
-        function openModule(moduleName) {
-            const modal = document.getElementById('module-modal');
-            const title = document.getElementById('modal-title');
-            const content = document.getElementById('modal-content');
-
-            const modules = {
-                'firma-ide': {
-                    title: 'Firma IDE',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">สภาพแวดล้อมการพัฒนาแบบบูรณาการ</h3>
-                        <div class="space-y-4">
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">📁 สารบบ Firma (File Explorer)</h4>
-                                <p>แสดงโครงสร้างไฟล์ทั้งหมด พร้อมตัวบ่งชี้ "ความร้อน" (Heat Score) และสัญลักษณ์แจ้งเตือนสำหรับไฟล์ที่เกี่ยวข้องกับ Code Smell</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">✏️ เอดิเตอร์โค้ด (Code Editor)</h4>
-                                <p>แสดงเนื้อหาของไฟล์ที่เลือก พร้อมไฮไลท์จุดที่น่าสนใจ เช่น โค้ดที่ไม่ได้ใช้งาน หรือการ import ที่เป็นส่วนหนึ่งของ Circular Dependency</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🌐 กราฟ Aetherium (Dependency Graph)</h4>
-                                <p>แสดงผลการพึ่งพิงระหว่างไฟล์ในรูปแบบของกราฟอนุภาค (d3.js บน Canvas) พร้อมการวิเคราะห์ผลกระทบ</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('firma-ide')">
-                            เปิดใช้งาน
-                        </button>
-                    `
-                },
-                'ai-core': {
-                    title: 'AI Core & Protocols',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">ระบบวิเคราะห์และแก้ไขโค้ดอัจฉริยะ</h3>
-                        <div class="space-y-4">
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🛡️ PRGX Sentry (Analysis Engine)</h4>
-                                <p>วิเคราะห์โค้ดและตรวจจับปัญหาเชิงโครงสร้าง เช่น Dead Code, Circular Dependency, Code Smells</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🔧 PRGX Mechanic (Refactoring Engine)</h4>
-                                <p>สร้างและดำเนินการ "โปรโตคอลการแก้ไข" (Refactoring Tasks) อัตโนมัติ</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🧠 Wisdom Engine</h4>
-                                <p>เชื่อมต่อกับ Gemini Flash Preview และใช้ Google Search Grounding เพื่อดึงข้อมูลคำอธิบายเชิงลึก</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('ai-core')">
-                            เริ่มการวิเคราะห์
-                        </button>
-                    `
-                },
-                'cli-extension': {
-                    title: 'CLI Extension Hub',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">สภาพแวดล้อมการจัดการส่วนขยาย</h3>
-                        <div class="space-y-4">
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">📦 การจำลองส่วนขยาย</h4>
-                                <p>แสดงไฟล์ manifest (gemini-extension.json), ไฟล์บริบท (GEMINI.md), และคำสั่งที่กำหนดเอง (slash commands) ภายใน UI</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🔗 การเชื่อมต่อและการทดสอบ</h4>
-                                <p>จำลองการ 'link' ส่วนขยายเพื่อเปิดใช้งาน MCP Server และทดสอบ slash commands ในเทอร์มินัลจำลอง</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('cli-extension')">
-                            เปิด Extension Hub
-                        </button>
-                    `
-                },
-                'image-genesis': {
-                    title: 'Image Genesis',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">การสร้างภาพด้วย AI</h3>
-                        <div class="glass-card p-6 mb-4">
-                            <p class="mb-4">ใช้ Gemini Pro Image Preview เพื่อสร้างภาพจากคำสั่งข้อความ</p>
-                             <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('image-genesis')">
-                                🎨 เปิดโมดูลสร้างภาพ
-                            </button>
-                        </div>
-                        <div class="text-sm text-gray-400">
-                            <p>💡 ต้องการ API Key จาก Google AI Studio</p>
-                        </div>
-                    `
-                },
-                'image-analysis': {
-                    title: 'Image Analysis',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">วิเคราะห์ภาพด้วย AI</h3>
-                        <div class="glass-card p-6 mb-4">
-                            <p class="mb-4">อัปโหลดภาพและถามคำถามเกี่ยวกับภาพ</p>
-                            <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('image-analysis')">
-                                🔍 เปิดโมดูลวิเคราะห์ภาพ
-                            </button>
-                        </div>
-                    `
-                },
-                'aether-canvas': {
-                    title: 'Aether Canvas - โปรโตคอลเจเนซิส',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">การสร้างสรรค์ผ่านเสียง</h3>
-                        <div class="space-y-4">
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🎤 Gemini Live API</h4>
-                                <p>ถอดเสียงพูดแบบเรียลไทม์ด้วย gemini-2.5-flash-native-audio-preview</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🌟 Particle Animation</h4>
-                                <p>ระบบ "ถักทอ" ภาพจากดวงดาวกว่า 5,000 ดวง แสดงกระบวนการสร้างสรรค์แบบเรียลไทม์</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg w-full transition-colors" onclick="launchApp('aether-canvas')">
-                            เข้าสู่ Canvas
-                        </button>
-                    `
-                },
-                'data-fabric': {
-                    title: 'Data Fabric',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">โครงสร้างข้อมูลและ Governance</h3>
-                        <div class="space-y-4">
-                            <div class="glass-card p-4 bg-amber-900/20">
-                                <h4 class="text-xl font-bold mb-2">🥉 Bronze Zone</h4>
-                                <p>ข้อมูลดิบที่เพิ่งเข้าสู่ระบบ</p>
-                            </div>
-                            <div class="glass-card p-4 bg-gray-400/20">
-                                <h4 class="text-xl font-bold mb-2">🥈 Silver Zone</h4>
-                                <p>ข้อมูลที่ผ่านการทำความสะอาดและจัดรูปแบบ</p>
-                            </div>
-                            <div class="glass-card p-4 bg-yellow-600/20">
-                                <h4 class="text-xl font-bold mb-2">🥇 Gold Zone</h4>
-                                <p>ข้อมูลที่พร้อมใช้งาน ผ่านการควบคุมคุณภาพและ Governance</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('data-fabric')">
-                            จัดการ Data Pipeline
-                        </button>
-                    `
-                },
-                'economic-fabric': {
-                    title: 'Economic Fabric',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">โครงข่ายเศรษฐกิจ (สถาปนิกเท่านั้น)</h3>
-                        <div class="space-y-4">
-                             <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">💎 Tier-based Economy</h4>
-                                <p>จำลองรูปแบบเศรษฐกิจแบบแบ่งชั้น</p>
-                            </div>
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">🏛️ Architectural Royalty</h4>
-                                <p>ระบบคำนวณและจ่ายเงิน "ค่าสถาปัตยกรรม" ให้แก่สถาปนิก</p>
-                            </div>
-                             <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">💳 Payment Gateway Integration</h4>
-                                <p>รองรับการทำธุรกรรมผ่านผู้ให้บริการทุกรูปแบบ รวมถึง TrueMoney และ Digital Wallet อื่นๆ เพื่อสร้างกระแสเงินสดเข้าสู่ระบบ</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg w-full transition-colors" onclick="launchApp('economic-fabric')">
-                            เปิดแดชบอร์ดเศรษฐกิจ
-                        </button>
-                    `
-                },
-                'aetherbus': {
-                    title: 'AetherBus Monitor',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">ระบบสื่อสารภายใน</h3>
-                        <div class="space-y-4">
-                            <div class="glass-card p-4">
-                                <h4 class="text-xl font-bold mb-2">💫 Light Pulse Simulator</h4>
-                                <p>แสดงสถานะการทำงานของระบบแบบ Real-time (IDLE/THINKING/EXECUTING)</p>
-                            </div>
-                        </div>
-                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('aetherbus')">
-                            เปิด Monitor
-                        </button>
-                    `
-                },
-                'settings': {
-                    title: 'การตั้งค่าระบบ',
-                    content: `
-                        <h3 class="text-2xl font-bold mb-4">จัดการการตั้งค่า</h3>
-                         <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('settings')">
-                            เปิดการตั้งค่า
-                        </button>
-                    `
-                },
-                'financial-nexus': {
-                    title: 'Financial Nexus',
-                    content: \`
-                        <h3 class="text-2xl font-bold mb-4">การเชื่อมต่อระบบการเงินและตลาดทุน</h3>
-                        <p class="mb-4">โมดูลนี้ทำหน้าที่เป็น Gateway สู่ระบบนิเวศทางการเงินระดับโลก เชื่อมต่อกับตลาดหุ้น, สินทรัพย์ดิจิทัล, และแพลตฟอร์มการลงทุน เพื่อการบริหารจัดการสินทรัพย์แบบรวมศูนย์</p>
-                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
-                    \`
-                },
-                'industrial-matrix': {
-                    title: 'Industrial Matrix',
-                    content: \`
-                        <h3 class="text-2xl font-bold mb-4">การบูรณาการภาคอุตสาหกรรม</h3>
-                        <p class="mb-4">เชื่อมต่อกับกลุ่มอุตสาหกรรมยานยนต์ (Toyota), พลังงาน (ผู้ผลิตแบตเตอรี่), และภาคการผลิต เพื่อแลกเปลี่ยนข้อมูลและสร้างโซลูชันร่วมกัน</p>
-                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
-                    \`
-                },
-                'retail-logistics': {
-                    title: 'Retail & Logistics',
-                    content: \`
-                        <h3 class="text-2xl font-bold mb-4">โครงข่ายค้าปลีกและโลจิสติกส์</h3>
-                        <p class="mb-4">บูรณาการกับธุรกิจค้าปลีกและ FMCG (CP, Nestlé, Big C) เพื่อบริหารจัดการซัพพลายเชนและข้อมูลผู้บริโภคอย่างมีประสิทธิภาพ</p>
-                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
-                    \`
-                },
-                'hardware-interface': {
-                    title: 'Hardware Interface',
-                    content: \`
-                        <h3 class="text-2xl font-bold mb-4">การเชื่อมต่อระดับฮาร์ดแวร์</h3>
-                        <p class="mb-4">สร้างการเชื่อมต่อโดยตรงกับ Hardware Layer และผู้ผลิตชิปเซ็ต เพื่อเพิ่มประสิทธิภาพการประมวลผลและเปิดใช้งานความสามารถขั้นสูง</p>
-                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
-                    \`
-                },
-                'media-hub': {
-                    title: 'Global Media Hub',
-                    content: \`
-                        <h3 class="text-2xl font-bold mb-4">ศูนย์กลางสื่อระดับโลก</h3>
-                        <p class="mb-4">บูรณาการเข้ากับ Ecosystem ของแพลตฟอร์มชั้นนำเช่น YouTube และแอปพลิเคชันบนสมาร์ทโฟน เพื่อสร้างประสบการณ์ใช้งานที่ไร้รอยต่อ</p>
-                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
-                    \`
-                }
-            };
-
-            const moduleData = modules[moduleName];
-            if (moduleData) {
-                title.textContent = moduleData.title;
-                content.innerHTML = moduleData.content;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-        }
-
-        // Close modal
-        function closeModal(event) {
-            if (!event || event.target.id === 'module-modal') {
-                const modal = document.getElementById('module-modal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        }
-
-        // Logout
-        function logout() {
-            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
-                userData = null;
-                userRole = null;
-                sessionStorage.clear();
-                window.location.reload();
-            }
-        }
-
         // Initialize on load
         window.onload = function() {
             createStars();
         };
 
-        // Demo login for testing
+        // Transition from login to account picker
         function demoLogin() {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('account-picker').style.display = 'flex';
