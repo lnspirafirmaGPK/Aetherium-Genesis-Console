@@ -269,10 +269,11 @@
                  <span id="google-btn-text">Sign in with Google</span>
             </button>
             <div class="divider" id="login-divider">or</div>
-            <form>
+            <form id="auth-form">
                 <input id="email-input" type="email" placeholder="Email Address" required>
                 <input id="password-input" type="password" placeholder="Password" required>
-                <button id="auth-btn" type="button" class="login-btn">Authenticate</button>
+                <p id="error-message" style="color: #f87171; height: 1em; margin: -0.5rem 0; font-size: 0.9rem; text-align: left;"></p>
+                <button id="auth-btn" type="submit" class="login-btn">Authenticate</button>
             </form>
             <div class="sub-links">
                 <span id="no-account-span">No account? <a href="#">Create one</a></span>
@@ -404,7 +405,8 @@
             }
         }
 
-        function launchApp() {
+        function launchApp(email) {
+            sessionStorage.setItem('loggedInUserEmail', email);
             document.body.style.transition = 'opacity 0.5s ease-out';
             document.body.style.opacity = '0';
 
@@ -447,11 +449,37 @@
         content.addEventListener('click', showLogin, { once: true });
         content.addEventListener('touchstart', showLogin, { once: true });
 
-        loginContainer.addEventListener('click', (e) => {
-            const target = e.target;
-            if (target instanceof Element && (target.closest('.google-btn') || target.closest('.login-btn'))) {
-                launchApp();
+        // --- Login Logic ---
+        const authForm = document.getElementById('auth-form');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const googleBtn = document.querySelector('.google-btn');
+        const errorMessage = document.getElementById('error-message');
+
+        const ARCHITECT_EMAIL = 'lnspirafirma@gmail.com';
+        const ARCHITECT_PASS = 'INSPIRAFIRMACnr5987c2307';
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            errorMessage.textContent = '';
+
+            if (email === ARCHITECT_EMAIL) {
+                if (password === ARCHITECT_PASS) {
+                    launchApp(email);
+                } else {
+                    errorMessage.textContent = document.documentElement.lang === 'th' ? 'ข้อมูลยืนยันตัวตนสำหรับสถาปนิกไม่ถูกต้อง' : 'Invalid credentials for Architect.';
+                }
+            } else if (email && password) {
+                launchApp(email);
+            } else {
+                errorMessage.textContent = document.documentElement.lang === 'th' ? 'กรุณากรอกอีเมลและรหัสผ่าน' : 'Please enter email and password.';
             }
+        });
+
+        googleBtn.addEventListener('click', () => {
+            launchApp('general.user@example.com');
         });
 
         privacyLink.addEventListener('click', (e) => {

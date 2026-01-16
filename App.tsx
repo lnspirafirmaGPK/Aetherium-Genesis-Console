@@ -35,6 +35,7 @@ const App: React.FC = () => {
     const { t } = useLocalization();
     const [isRefactoring, setIsRefactoring] = useState(false);
     const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+    const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
     
     // State for the Core Monitor
     const [lightPulseState, setLightPulseState] = useState<LightPulseState>('IDLE');
@@ -71,6 +72,11 @@ const App: React.FC = () => {
     
     // State for Notifications
     const [notifications, setNotifications] = useState<Notification[]>([]);
+
+    useEffect(() => {
+        const loggedInEmail = sessionStorage.getItem('loggedInUserEmail');
+        setCurrentUserEmail(loggedInEmail || ARCHITECT_EMAIL); // Fallback to architect for dev
+    }, []);
 
     const addNotification = useCallback((title: TranslationKey, message: TranslationKey, type: 'success' | 'error' | 'info', data?: string) => {
         const newNotification: Notification = {
@@ -359,7 +365,7 @@ const App: React.FC = () => {
                        {activeTab === 'analysis' && <ImageAnalysis />}
                        {activeTab === 'chat' && <Chatbot />}
                        {activeTab === 'fabric' && <DataFabricView files={files} analysisResult={analysisResult} completedTasks={completedTasks} onPublish={handleOpenGitHubModal} />}
-                       {activeTab === 'economicFabric' && <EconomicFabricView addNotification={addNotification} userEmail={ARCHITECT_EMAIL} />}
+                       {activeTab === 'economicFabric' && <EconomicFabricView addNotification={addNotification} userEmail={currentUserEmail} />}
                        {activeTab === 'aether' && (
                            <div className="flex flex-col h-full text-sm">
                                {isGenesisModeActive ? (
@@ -607,7 +613,7 @@ const App: React.FC = () => {
             <UserProfilePanel
                 isOpen={isUserProfileOpen}
                 onClose={() => setIsUserProfileOpen(false)}
-                userEmail={ARCHITECT_EMAIL}
+                userEmail={currentUserEmail}
                 filesManaged={files.length}
                 protocolsExecuted={completedTasks.length}
                 imagesSynthesized={12}
