@@ -242,6 +242,8 @@ export const en = {
     notifTransferSuccessMessage: 'A transfer of {data} has been initiated via the MCP Gateway.',
     // Legacy Hub View
     hub: "Hub",
+    goBack: "Back",
+    goBackTooltip: "Go to the previous view",
     hubWelcomeUser: "Welcome",
     firmaIDEDesc: "The integrated environment for code analysis, visualization, and refactoring.",
     aiAgentDesc: "Access the AI console to review and execute automated code improvement protocols.",

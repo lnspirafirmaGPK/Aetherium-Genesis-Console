@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aetherium Genesis Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/acorn@8.11.3/dist/acorn.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
         
@@ -14,7 +16,7 @@
 
         body {
             margin: 0;
-            overflow: hidden;
+            overflow-x: hidden;
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
         }
 
@@ -190,7 +192,7 @@
             <!-- Nexus Hub Title -->
             <div class="text-center mb-8">
                 <h1 class="text-5xl font-bold text-white mb-2">โถงกลางแห่งการเชื่อมต่อ</h1>
-                <p class="text-xl text-purple-300">Nexus Hub - ศูนย์กลางการนำทาง</p>
+                <p class="text-xl text-purple-300">ประตูสู่ระบบนิเวศบริการระดับโลก</p>
             </div>
 
             <!-- Module Grid -->
@@ -303,6 +305,40 @@
                     </ul>
                 </div>
             </div>
+
+             <!-- Omni-Channel Network -->
+            <div class="text-center mt-16 mb-8">
+                <h2 class="text-4xl font-bold text-white mb-2">โครงข่าย Omni-Channel</h2>
+                <p class="text-lg text-purple-300">เชื่อมต่อทุกอุตสาหกรรมผ่านจุดเดียว</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto pb-8">
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('financial-nexus')">
+                    <div class="module-icon">💹</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Financial Nexus</h3>
+                    <p class="text-gray-300 text-xs">ตลาดทุน, หุ้น, และสินทรัพย์ดิจิทัล</p>
+                </div>
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('industrial-matrix')">
+                    <div class="module-icon">🏭</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Industrial Matrix</h3>
+                    <p class="text-gray-300 text-xs">ยานยนต์, พลังงาน, และการผลิต</p>
+                </div>
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('retail-logistics')">
+                    <div class="module-icon">🛒</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Retail & Logistics</h3>
+                    <p class="text-gray-300 text-xs">ค้าปลีก, FMCG, และซัพพลายเชน</p>
+                </div>
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('hardware-interface')">
+                    <div class="module-icon">🔌</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Hardware Interface</h3>
+                    <p class="text-gray-300 text-xs">เชื่อมต่อระดับชิปเซ็ตและฮาร์ดแวร์</p>
+                </div>
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('media-hub')">
+                    <div class="module-icon">🎬</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Global Media Hub</h3>
+                    <p class="text-gray-300 text-xs">Ecosystem ของ YouTube และสมาร์ทโฟน</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -317,7 +353,9 @@
         </div>
     </div>
 
-    <script>
+    <div id="root"></div>
+
+    <script id="hub-script">
         let userData = null;
         let userRole = null;
         let appLaunched = false;
@@ -385,15 +423,22 @@
             document.body.style.opacity = '0';
 
             setTimeout(() => {
-                document.body.innerHTML = '';
-                const root = document.createElement('div');
-                root.id = 'root';
-                document.body.appendChild(root);
+                // Remove all hub-specific elements from the body
+                document.getElementById('stars')?.remove();
+                document.getElementById('login-screen')?.remove();
+                document.getElementById('account-picker')?.remove();
+                document.getElementById('hub-view')?.remove();
+                document.getElementById('module-modal')?.remove();
+                // Also remove the script tag we are currently in
+                document.getElementById('hub-script')?.remove();
 
+                // The <div id="root"></div> already exists.
+                // We just need to set the final body styles.
                 document.body.style.background = '#0f172a';
                 document.body.style.overflow = 'hidden';
                 document.body.style.opacity = '1';
                 
+                // Create and append the script to load the React app
                 const script = document.createElement('script');
                 script.type = 'module';
                 script.src = '/index.tsx';
@@ -536,6 +581,10 @@
                                 <h4 class="text-xl font-bold mb-2">🏛️ Architectural Royalty</h4>
                                 <p>ระบบคำนวณและจ่ายเงิน "ค่าสถาปัตยกรรม" ให้แก่สถาปนิก</p>
                             </div>
+                             <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">💳 Payment Gateway Integration</h4>
+                                <p>รองรับการทำธุรกรรมผ่านผู้ให้บริการทุกรูปแบบ รวมถึง TrueMoney และ Digital Wallet อื่นๆ เพื่อสร้างกระแสเงินสดเข้าสู่ระบบ</p>
+                            </div>
                         </div>
                         <button class="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg w-full transition-colors" onclick="launchApp('economic-fabric')">
                             เปิดแดชบอร์ดเศรษฐกิจ
@@ -565,6 +614,46 @@
                             เปิดการตั้งค่า
                         </button>
                     `
+                },
+                'financial-nexus': {
+                    title: 'Financial Nexus',
+                    content: \`
+                        <h3 class="text-2xl font-bold mb-4">การเชื่อมต่อระบบการเงินและตลาดทุน</h3>
+                        <p class="mb-4">โมดูลนี้ทำหน้าที่เป็น Gateway สู่ระบบนิเวศทางการเงินระดับโลก เชื่อมต่อกับตลาดหุ้น, สินทรัพย์ดิจิทัล, และแพลตฟอร์มการลงทุน เพื่อการบริหารจัดการสินทรัพย์แบบรวมศูนย์</p>
+                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
+                    \`
+                },
+                'industrial-matrix': {
+                    title: 'Industrial Matrix',
+                    content: \`
+                        <h3 class="text-2xl font-bold mb-4">การบูรณาการภาคอุตสาหกรรม</h3>
+                        <p class="mb-4">เชื่อมต่อกับกลุ่มอุตสาหกรรมยานยนต์ (Toyota), พลังงาน (ผู้ผลิตแบตเตอรี่), และภาคการผลิต เพื่อแลกเปลี่ยนข้อมูลและสร้างโซลูชันร่วมกัน</p>
+                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
+                    \`
+                },
+                'retail-logistics': {
+                    title: 'Retail & Logistics',
+                    content: \`
+                        <h3 class="text-2xl font-bold mb-4">โครงข่ายค้าปลีกและโลจิสติกส์</h3>
+                        <p class="mb-4">บูรณาการกับธุรกิจค้าปลีกและ FMCG (CP, Nestlé, Big C) เพื่อบริหารจัดการซัพพลายเชนและข้อมูลผู้บริโภคอย่างมีประสิทธิภาพ</p>
+                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
+                    \`
+                },
+                'hardware-interface': {
+                    title: 'Hardware Interface',
+                    content: \`
+                        <h3 class="text-2xl font-bold mb-4">การเชื่อมต่อระดับฮาร์ดแวร์</h3>
+                        <p class="mb-4">สร้างการเชื่อมต่อโดยตรงกับ Hardware Layer และผู้ผลิตชิปเซ็ต เพื่อเพิ่มประสิทธิภาพการประมวลผลและเปิดใช้งานความสามารถขั้นสูง</p>
+                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
+                    \`
+                },
+                'media-hub': {
+                    title: 'Global Media Hub',
+                    content: \`
+                        <h3 class="text-2xl font-bold mb-4">ศูนย์กลางสื่อระดับโลก</h3>
+                        <p class="mb-4">บูรณาการเข้ากับ Ecosystem ของแพลตฟอร์มชั้นนำเช่น YouTube และแอปพลิเคชันบนสมาร์ทโฟน เพื่อสร้างประสบการณ์ใช้งานที่ไร้รอยต่อ</p>
+                        <button class="mt-6 px-6 py-3 bg-gray-600 rounded-lg w-full cursor-not-allowed">เชื่อมต่อ (เร็วๆ นี้)</button>
+                    \`
                 }
             };
 

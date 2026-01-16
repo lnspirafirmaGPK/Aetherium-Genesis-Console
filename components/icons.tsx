@@ -267,3 +267,9 @@ export const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a.75.75 0 011.06 0l8.955 8.955M3 10.5v.75a3 3 0 003 3h1.5v5.25a.75.75 0 00.75.75h3a.75.75 0 00.75-.75V15h1.5v5.25a.75.75 0 00.75.75h3a.75.75 0 00.75-.75V14.25a3 3 0 003-3v-.75" />
     </svg>
 );
+
+export const ArrowUturnLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+    </svg>
+);

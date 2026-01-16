@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AgentIcon, SettingsIcon, LanguageIcon, GitHubIcon, CpuChipIcon, UserCircleIcon, HomeIcon } from './icons';
+import { AgentIcon, SettingsIcon, LanguageIcon, GitHubIcon, CpuChipIcon, UserCircleIcon, HomeIcon, ArrowUturnLeftIcon } from './icons';
 import { useLocalization } from '../contexts/LocalizationContext';
 
 interface ToolbarProps {
@@ -8,9 +8,11 @@ interface ToolbarProps {
     onOpenModelConfig: () => void;
     onOpenUserProfile: () => void;
     onGoToHub: () => void;
+    onGoBack: () => void;
+    canGoBack: boolean;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenModelConfig, onOpenUserProfile, onGoToHub }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenModelConfig, onOpenUserProfile, onGoToHub, onGoBack, canGoBack }) => {
     const { t, setLanguage, language } = useLocalization();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenMod
                 title={t('hub')}
             >
                 <HomeIcon className="w-5 h-5" />
+            </button>
+            <button
+                onClick={onGoBack}
+                disabled={!canGoBack}
+                className="flex items-center px-4 py-2 bg-gray-700 hover:bg-cyan-600 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={t('goBackTooltip')}
+            >
+                <ArrowUturnLeftIcon className="w-5 h-5" />
             </button>
             <button
                 onClick={onAnalyze}

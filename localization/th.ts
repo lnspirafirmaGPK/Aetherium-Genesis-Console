@@ -242,6 +242,8 @@ export const th = {
     notifTransferSuccessMessage: 'การโอนเงินจำนวน {data} ได้เริ่มต้นขึ้นแล้วผ่าน MCP Gateway',
     // Legacy Hub View
     hub: "ฮับ",
+    goBack: "ย้อนกลับ",
+    goBackTooltip: "กลับไปยังมุมมองก่อนหน้า",
     hubWelcomeUser: "ยินดีต้อนรับ",
     firmaIDEDesc: "สภาพแวดล้อมแบบบูรณาการสำหรับการวิเคราะห์โค้ด, การแสดงภาพ, และการปรับปรุงโค้ด",
     aiAgentDesc: "เข้าถึงคอนโซล AI เพื่อตรวจสอบและดำเนินการโปรโตคอลการปรับปรุงโค้ดอัตโนมัติ",
