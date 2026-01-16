@@ -79,6 +79,7 @@ export const th = {
     baseBranch: "Branch หลัก",
     compareBranch: "Branch เปรียบเทียบ",
     commitDetails: "รายละเอียด Commit",
+    close: "ปิด",
     // Confirmation Modal
     confirmActionTitle: "ยืนยันการกระทำ",
     confirmExecutionMessage: "คุณแน่ใจหรือไม่ว่าต้องการดำเนินโปรโตคอลนี้? การกระทำนี้จะแก้ไขโค้ดในการจำลอง",
@@ -87,4 +88,13 @@ export const th = {
     confirmPrTitle: "ยืนยัน Pull Request",
     confirmPrMessage: "การดำเนินการนี้จะสร้าง Pull Request ใหม่ตามรายละเอียดที่ให้ไว้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?",
     confirm: "ยืนยัน",
+    // Model Configuration
+    modelConfiguration: "การกำหนดค่าโมเดล",
+    modelConfigTitle: "การกำหนดค่าแกน AI",
+    modelConfigDescription: "กำหนดโมเดล AI ที่แตกต่างกันให้กับแต่ละระบบเพื่อปรับสมดุลประสิทธิภาพและความสามารถ",
+    wisdomEngine: "Wisdom Engine",
+    save: "บันทึก",
+    modelFast: "Aether-7B (รวดเร็ว)",
+    modelStrategic: "Cognito-Pro (กลยุทธ์)",
+    modelImaging: "Visionary-XL (สร้างภาพ)",
 };

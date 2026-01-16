@@ -9,7 +9,8 @@ import { AgentPanel } from './components/AgentPanel';
 import { ImageGenesis } from './components/ImageGenesis';
 import { Chatbot } from './components/Chatbot';
 import { ConfirmationModal } from './components/ConfirmationModal';
-import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams } from './types';
+import { ModelConfigModal } from './components/ModelConfigModal';
+import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig } from './types';
 import { AnalysisEngine } from './services/analysisEngine';
 import { RefactoringEngine } from './services/refactoringEngine';
 import { MOCK_FILE_SYSTEM } from './constants';
@@ -46,6 +47,14 @@ const App: React.FC = () => {
     const [prTitle, setPrTitle] = useState('');
     const [prDescription, setPrDescription] = useState('');
     const [isPrConfirmModalOpen, setIsPrConfirmModalOpen] = useState(false);
+
+    // State for AI Model Configuration
+    const [isModelConfigModalOpen, setIsModelConfigModalOpen] = useState(false);
+    const [modelConfig, setModelConfig] = useState<ModelConfig>({
+        wisdomEngine: 'Cognito-Pro (Strategic)',
+        imageGenesis: 'Visionary-XL (Imaging)',
+        chatbot: 'Cognito-Pro (Strategic)',
+    });
 
     const analysisEngine = useMemo(() => new AnalysisEngine(files), [files]);
     
@@ -232,7 +241,11 @@ const App: React.FC = () => {
         <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
             <header className="bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-lg">
                 <h1 className="text-2xl font-bold text-cyan-400">{t('appTitle')}</h1>
-                <Toolbar onAnalyze={handleScan} onUpload={handleOpenGitHubModal} />
+                <Toolbar 
+                    onAnalyze={handleScan} 
+                    onUpload={handleOpenGitHubModal}
+                    onOpenModelConfig={() => setIsModelConfigModalOpen(true)}
+                />
             </header>
             <main className="flex flex-1 overflow-hidden">
                 {/* Left Panel */}
@@ -451,7 +464,7 @@ const App: React.FC = () => {
                                         onClick={() => setIsGitHubModalOpen(false)}
                                         className="mt-6 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-md transition-colors"
                                     >
-                                        Close
+                                        {t('close')}
                                     </button>
                                 </div>
                             )}
@@ -472,6 +485,15 @@ const App: React.FC = () => {
                 cancelText={t('cancel')}
                 icon={<GitHubIcon className="w-6 h-6 mr-3 text-cyan-400" />}
                 confirmButtonClass="bg-green-600 hover:bg-green-500"
+            />
+            <ModelConfigModal
+                isOpen={isModelConfigModalOpen}
+                onClose={() => setIsModelConfigModalOpen(false)}
+                currentConfig={modelConfig}
+                onSave={(newConfig) => {
+                    setModelConfig(newConfig);
+                    setIsModelConfigModalOpen(false);
+                }}
             />
         </div>
     );

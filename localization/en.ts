@@ -79,6 +79,7 @@ export const en = {
     baseBranch: "Base",
     compareBranch: "Compare",
     commitDetails: "Commit Details",
+    close: "Close",
     // Confirmation Modal
     confirmActionTitle: "Confirm Action",
     confirmExecutionMessage: "Are you sure you want to execute this protocol? This will modify the code in the simulation.",
@@ -87,4 +88,13 @@ export const en = {
     confirmPrTitle: "Confirm Pull Request",
     confirmPrMessage: "This will create a new pull request with the details provided. Are you sure you want to proceed?",
     confirm: "Confirm",
+    // Model Configuration
+    modelConfiguration: "Model Configuration",
+    modelConfigTitle: "AI Core Configuration",
+    modelConfigDescription: "Assign different AI models to each system to balance performance and capability.",
+    wisdomEngine: "Wisdom Engine",
+    save: "Save",
+    modelFast: "Aether-7B (Fast)",
+    modelStrategic: "Cognito-Pro (Strategic)",
+    modelImaging: "Visionary-XL (Imaging)",
 };

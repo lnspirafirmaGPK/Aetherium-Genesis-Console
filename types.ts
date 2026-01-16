@@ -122,3 +122,9 @@ export interface ChatMessage {
     role: 'user' | 'model';
     content: string;
 }
+
+export interface ModelConfig {
+    wisdomEngine: string;
+    imageGenesis: string;
+    chatbot: string;
+}
