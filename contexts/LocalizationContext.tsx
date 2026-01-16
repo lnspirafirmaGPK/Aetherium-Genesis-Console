@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { translations, TranslationKey } from '../localization';
 
@@ -12,8 +11,16 @@ interface LocalizationContextType {
 
 const LocalizationContext = createContext<LocalizationContextType | undefined>(undefined);
 
+const getInitialLanguage = (): Language => {
+    const browserLang = navigator.language.toLowerCase();
+    if (browserLang.startsWith('th')) {
+        return 'th';
+    }
+    return 'en';
+};
+
 export const LocalizationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [language, setLanguage] = useState<Language>('en');
+    const [language, setLanguage] = useState<Language>(getInitialLanguage());
 
     const t = (key: TranslationKey): string => {
         return translations[language][key] || key;

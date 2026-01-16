@@ -51,6 +51,8 @@ const App: React.FC = () => {
     const [prTitle, setPrTitle] = useState('');
     const [prDescription, setPrDescription] = useState('');
     const [isPrConfirmModalOpen, setIsPrConfirmModalOpen] = useState(false);
+    const [baseBranch, setBaseBranch] = useState('main');
+    const [compareBranch, setCompareBranch] = useState('feat/ai-refactor');
 
     // State for AI Model Configuration
     const [isModelConfigModalOpen, setIsModelConfigModalOpen] = useState(false);
@@ -429,10 +431,25 @@ const App: React.FC = () => {
 
                                     <div className="border-t border-gray-700 pt-6">
                                         <h4 className="text-md font-semibold text-gray-300 mb-3">{t('pullRequestDetails')}</h4>
-                                        <div className="flex items-center space-x-4 mb-4">
-                                            <span className="flex items-center px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full text-sm font-mono"><GitBranchIcon className="w-4 h-4 mr-2" />{t('baseBranch')}: main</span>
-                                            <span className="text-gray-500">&larr;</span>
-                                            <span className="flex items-center px-3 py-1 bg-purple-900/50 text-purple-300 rounded-full text-sm font-mono"><GitBranchIcon className="w-4 h-4 mr-2" />{t('compareBranch')}: feat/ai-refactor</span>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label htmlFor="base-branch" className="block text-sm font-medium text-gray-400 mb-1 flex items-center"><GitBranchIcon className="w-4 h-4 mr-2" /> {t('baseBranch')}</label>
+                                                <input
+                                                    id="base-branch"
+                                                    value={baseBranch}
+                                                    onChange={(e) => setBaseBranch(e.target.value)}
+                                                    className="w-full p-2 bg-gray-900 border border-gray-600 rounded-md focus:ring-2 focus:ring-cyan-500 focus:outline-none text-gray-200"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="compare-branch" className="block text-sm font-medium text-gray-400 mb-1 flex items-center"><GitBranchIcon className="w-4 h-4 mr-2" /> {t('compareBranch')}</label>
+                                                <input
+                                                    id="compare-branch"
+                                                    value={compareBranch}
+                                                    onChange={(e) => setCompareBranch(e.target.value)}
+                                                    className="w-full p-2 bg-gray-900 border border-gray-600 rounded-md focus:ring-2 focus:ring-cyan-500 focus:outline-none text-gray-200"
+                                                />
+                                            </div>
                                         </div>
                                         <div>
                                             <label htmlFor="pr-title" className="block text-sm font-medium text-gray-400 mb-1">{t('pullRequestTitle')}</label>
