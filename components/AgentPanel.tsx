@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { RefactoringTask, GroundingResult } from '../types';
 import { LightBulbIcon, CheckCircleIcon, CircularDepIcon, DeadCodeIcon, WorldIcon, WarningIcon } from './icons';
@@ -21,11 +20,18 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ tasks, isRefactoring, co
     const { t } = useLocalization();
     
     useEffect(() => {
-        if (selectedTask && (completedTasks.includes(selectedTask.id) || !tasks.some(t => t.id === selectedTask.id))) {
-             setSelectedTask(tasks.find(t => !completedTasks.includes(t.id)) || null);
+        // If the selected task is no longer valid (e.g., completed or removed), select the next available one.
+        const isSelectedTaskStale = selectedTask && (!tasks.some(t => t.id === selectedTask.id) || completedTasks.includes(selectedTask.id));
+
+        if (isSelectedTaskStale) {
+             const nextTask = tasks.find(t => !completedTasks.includes(t.id)) || null;
+             setSelectedTask(nextTask);
         } else if (!selectedTask && tasks.length > 0) {
-             setSelectedTask(tasks.find(t => !completedTasks.includes(t.id)) || null);
+             // If no task is selected, select the first available one.
+             const nextTask = tasks.find(t => !completedTasks.includes(t.id)) || null;
+             setSelectedTask(nextTask);
         }
+
     }, [tasks, completedTasks, selectedTask]);
 
     useEffect(() => {
@@ -42,6 +48,12 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ tasks, isRefactoring, co
                         break;
                     case 'REMOVE_DEAD_CODE':
                         topic = "The importance of removing dead or unused code from a codebase";
+                        break;
+                    case 'SPLIT_UTILITIES':
+                        topic = "Improving code cohesion by splitting large utility files";
+                        break;
+                    case 'REVIEW_ABSTRACTION':
+                        topic = "The purpose of abstraction layers and identifying tightly coupled modules";
                         break;
                     default:
                         setIsLoadingWisdom(false);
@@ -70,6 +82,12 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ tasks, isRefactoring, co
             setIsConfirmModalOpen(true);
         }
     };
+    
+    const handleSimulateImpact = () => {
+        if (selectedTask) {
+             AetherBus.getInstance().publish('SIMULATE_IMPACT', selectedTask);
+        }
+    };
 
     const handleConfirmExecute = () => {
         if (selectedTask) {
@@ -83,6 +101,7 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ tasks, isRefactoring, co
             case 'BREAK_CIRCULAR_DEPENDENCY':
                 return <CircularDepIcon className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" />;
             case 'REMOVE_DEAD_CODE':
+            case 'SPLIT_UTILITIES':
                 return <DeadCodeIcon className="w-5 h-5 text-yellow-400 mr-3 flex-shrink-0" />;
             default:
                 return <LightBulbIcon className="w-5 h-5 text-cyan-400 mr-3 flex-shrink-0" />;
@@ -158,7 +177,14 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ tasks, isRefactoring, co
                         </div>
                     )}
                     
-                    <div className="mt-auto pt-4">
+                    <div className="mt-auto pt-4 flex gap-2">
+                         <button
+                            onClick={handleSimulateImpact}
+                            disabled={isRefactoring}
+                            className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition-colors duration-200 disabled:bg-gray-700 disabled:cursor-not-allowed"
+                        >
+                            {t('simulateImpact')}
+                        </button>
                         <button
                             onClick={handleExecuteClick}
                             disabled={isRefactoring}

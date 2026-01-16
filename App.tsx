@@ -13,6 +13,8 @@ import { DataFabricView } from './components/DataFabricView';
 import { AetherCanvas } from './components/AetherCanvas';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { ModelConfigModal } from './components/ModelConfigModal';
+import { UserProfilePanel } from './components/UserProfilePanel';
+import { EconomicFabricView } from './components/EconomicFabricView';
 import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig } from './types';
 import { AnalysisEngine } from './services/analysisEngine';
 import { RefactoringEngine } from './services/refactoringEngine';
@@ -27,8 +29,10 @@ const App: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<CodeFile | null>(files.find(f => f.path === 'src/api/client.ts') || files[0] || null);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [highlightedNode, setHighlightedNode] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric'>('genesis');
-    const [tasks, setTasks] = useState<RefactoringTask[]>([]);
+    // FIX: Add 'economicFabric' to the activeTab type definition to support the new tab.
+    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric'>('genesis');
+    const [staticTasks, setStaticTasks] = useState<RefactoringTask[]>([]);
+    const [dynamicTasks, setDynamicTasks] = useState<RefactoringTask[]>([]);
     const { t } = useLocalization();
     const [isRefactoring, setIsRefactoring] = useState(false);
     const [completedTasks, setCompletedTasks] = useState<string[]>([]);
@@ -42,6 +46,7 @@ const App: React.FC = () => {
     
     // State for focused view
     const [focusedView, setFocusedView] = useState<'editor' | 'panel'>('editor');
+    const [impactAnalysis, setImpactAnalysis] = useState<{ source: string[], affected: string[] } | null>(null);
     
     // State for GitHub modal
     const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
@@ -61,10 +66,12 @@ const App: React.FC = () => {
         imageGenesis: 'Visionary-XL (Imaging)',
         chatbot: 'Cognito-Pro (Strategic)',
     });
+    
+    // State for User Profile
+    const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
 
     const analysisEngine = useMemo(() => new AnalysisEngine(files), [files]);
     
-    // Sync dev controls with selected manual state
     useEffect(() => {
         if (isDevMode) {
             setDevParams(STATE_CONFIG[manualState] || STATE_CONFIG.IDLE);
@@ -105,7 +112,7 @@ const App: React.FC = () => {
                 ]
             });
         }
-        setTasks(newTasks);
+        setStaticTasks(newTasks);
         setCompletedTasks(prev => prev.filter(taskId => newTasks.some(t => t.id === taskId)));
     }, [analysisEngine]);
 
@@ -113,19 +120,19 @@ const App: React.FC = () => {
         runAnalysis();
     }, [runAnalysis]);
 
-    // Setup AetherBus subscriptions for agent communication
+    const allTasks = useMemo(() => [...staticTasks, ...dynamicTasks], [staticTasks, dynamicTasks]);
+
     useEffect(() => {
         const aetherBus = AetherBus.getInstance();
         
         const handleProtocolExecution = (envelope: any) => {
             if (isDevMode) return;
             const taskId = envelope.payload.targetId as string;
-            const task = tasks.find(t => t.id === taskId);
+            const task = allTasks.find(t => t.id === taskId);
     
             if (task && !isRefactoring) {
                 setIsRefactoring(true);
                 setLightPulseState('EXECUTING');
-                console.log('[PRGX2-Mechanic] Received protocol. Executing...', task);
     
                 setTimeout(() => {
                     const newFiles = RefactoringEngine.execute(files, task);
@@ -141,7 +148,6 @@ const App: React.FC = () => {
             if (isDevMode) return;
             const newFiles = envelope.payload.newFirmaState as CodeFile[];
             const completedTaskId = envelope.payload.targetId as string;
-            console.log('[Aetherium-Core] Received Firma update. Applying state...', completedTaskId);
             
             setLightPulseState('COMPLETE');
             setTimeout(() => setLightPulseState('IDLE'), 1200);
@@ -150,8 +156,29 @@ const App: React.FC = () => {
             setCompletedTasks(prev => [...new Set([...prev, completedTaskId])]);
             setIsRefactoring(false);
             
-            const fileToSelect = newFiles.find(f => f.path === 'src/services/tokenProvider.ts') || newFiles[0] || null;
-            setSelectedFile(fileToSelect);
+            // Auto-select a relevant new file after refactoring
+            let fileToSelect: CodeFile | null = null;
+            if (completedTaskId === 'CIRCULAR_DEP_AUTH_CLIENT') {
+                 fileToSelect = newFiles.find(f => f.path === 'src/services/tokenProvider.ts');
+            } else if (completedTaskId.startsWith('SPLIT_UTILITIES')) {
+                 fileToSelect = newFiles.find(f => f.path === 'src/utils/formatters-date.ts');
+            }
+            setSelectedFile(fileToSelect || newFiles[0] || null);
+        };
+        
+        const handleSimulateImpact = (envelope: any) => {
+            const filesInvolved = envelope.payload.filesInvolved as string[];
+            if (!analysisResult) return;
+            
+            const affected = analysisResult.dependencies
+                .filter(dep => filesInvolved.includes(dep.to))
+                .map(dep => dep.from);
+            
+            setImpactAnalysis({ source: filesInvolved, affected: [...new Set(affected)] });
+            setActiveTab('graph');
+            setFocusedView('panel');
+            
+            setTimeout(() => setImpactAnalysis(null), 5000); // Simulation lasts 5 seconds
         };
         
         const handleWisdomStart = () => !isDevMode && setLightPulseState('THINKING');
@@ -161,14 +188,16 @@ const App: React.FC = () => {
         const unsubCore = aetherBus.subscribe('REFACTORING_COMPLETE', handleRefactoringComplete);
         const unsubWisdomStart = aetherBus.subscribe('WISDOM_FETCH_START', handleWisdomStart);
         const unsubWisdomEnd = aetherBus.subscribe('WISDOM_FETCH_END', handleWisdomEnd);
+        const unsubSimulator = aetherBus.subscribe('SIMULATE_IMPACT', handleSimulateImpact);
     
         return () => {
             unsubMechanic();
             unsubCore();
             unsubWisdomStart();
             unsubWisdomEnd();
+            unsubSimulator();
         };
-    }, [files, tasks, isRefactoring, isDevMode]);
+    }, [files, allTasks, isRefactoring, isDevMode, analysisResult]);
 
     const handleScan = () => {
         runAnalysis();
@@ -180,6 +209,7 @@ const App: React.FC = () => {
         setHighlightedNode(file.path);
         AetherBus.getInstance().publish('FIRMA_NODE_SELECTED', file);
         setFocusedView('editor');
+        setDynamicTasks(analysisEngine.generateDynamicTasks(file.path));
         setTimeout(() => setHighlightedNode(null), 1500);
     };
 
@@ -190,7 +220,7 @@ const App: React.FC = () => {
 
     const handleOpenGitHubModal = () => {
         const completedTaskTitles = completedTasks
-            .map(id => tasks.find(task => task.id === id))
+            .map(id => allTasks.find(task => task.id === id))
             .filter(Boolean)
             .map(task => t(task!.titleKey));
         
@@ -198,7 +228,7 @@ const App: React.FC = () => {
             ? `feat: AI-assisted refactoring\n\nThis pull request includes the following automated refactors:\n- ${completedTaskTitles.join('\n- ')}`
             : 'chore: Aetherium Genesis code sync';
         
-        setCommitMessage(description.split('\n')[0]); // First line as commit message
+        setCommitMessage(description.split('\n')[0]);
         setPrTitle(completedTaskTitles.length > 0 ? t('prTitleDefault') : 'Sync Code');
         setPrDescription(description);
         setGithubModalStep('form');
@@ -210,7 +240,7 @@ const App: React.FC = () => {
         setGithubModalStep('loading');
         setTimeout(() => {
             setGithubModalStep('success');
-            setIsGitHubModalOpen(true); // Re-open to show loading/success
+            setIsGitHubModalOpen(true);
         }, 500);
         setTimeout(() => {
             setGithubModalStep('success');
@@ -218,16 +248,19 @@ const App: React.FC = () => {
     };
 
     const graphData = useMemo(() => {
+        if (!analysisResult) return { nodes: [], links: [] };
+        
         const nodes = files.map(f => ({
             id: f.path,
-            isDead: analysisResult?.deadCodeFiles.includes(f.path) ?? false,
-            isCircular: analysisResult?.circularDependencyFiles.flat().includes(f.path) ?? false,
+            isDead: analysisResult.deadCodeFiles.includes(f.path) ?? false,
+            isCircular: analysisResult.circularDependencyFiles.flat().includes(f.path) ?? false,
+            heat: analysisResult.heatScores.get(f.path) ?? 0,
         }));
 
-        const links = analysisResult?.dependencies.map(d => ({
+        const links = analysisResult.dependencies.map(d => ({
             source: d.from,
             target: d.to,
-        })) ?? [];
+        }));
 
         return { nodes, links };
     }, [files, analysisResult]);
@@ -240,6 +273,7 @@ const App: React.FC = () => {
         analysis: 'imageAnalysis',
         chat: 'chatbot',
         fabric: 'dataFabric',
+        economicFabric: 'economicFabric',
         aether: 'aetherInterface',
         agent: 'aiAgent',
         graph: 'dependencyGraph',
@@ -253,10 +287,10 @@ const App: React.FC = () => {
                     onAnalyze={handleScan} 
                     onUpload={handleOpenGitHubModal}
                     onOpenModelConfig={() => setIsModelConfigModalOpen(true)}
+                    onOpenUserProfile={() => setIsUserProfileOpen(true)}
                 />
             </header>
             <main className="flex flex-1 overflow-hidden">
-                {/* Left Panel */}
                 <div className="bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 w-1/4 lg:w-1/5">
                    <FileExplorer 
                         files={files} 
@@ -266,12 +300,10 @@ const App: React.FC = () => {
                     />
                 </div>
                 
-                {/* Center Panel */}
                 <div className={`flex flex-col min-w-0 flex-1 transition-all duration-300 ease-in-out ${focusedView === 'panel' ? 'hidden' : 'flex'}`}>
                     <CodeEditor file={selectedFile} analysisResult={analysisResult} />
                 </div>
 
-                {/* Right Panel */}
                 <div className={`bg-gray-800 border-l border-gray-700 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${focusedView === 'panel' ? 'flex-1' : 'w-[30%] 2xl:w-1/4 flex-shrink-0'}`}>
                     {focusedView === 'panel' && (
                         <div className="p-2 border-b border-gray-700 flex items-center flex-shrink-0">
@@ -288,11 +320,13 @@ const App: React.FC = () => {
                     )}
                     
                     {focusedView === 'editor' && (
-                        <div className="grid grid-cols-3 border-b border-gray-700 flex-shrink-0">
+                        // FIX: Changed grid-cols-4 to grid-cols-8 to accommodate the new tab and prevent layout breaking.
+                        <div className="grid grid-cols-8 border-b border-gray-700 flex-shrink-0">
                             <button onClick={() => handleFocusPanel('genesis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'genesis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageGenesis')}</button>
                             <button onClick={() => handleFocusPanel('analysis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'analysis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageAnalysis')}</button>
                             <button onClick={() => handleFocusPanel('chat')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'chat' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('chatbot')}</button>
                             <button onClick={() => handleFocusPanel('fabric')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'fabric' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dataFabric')}</button>
+                            <button onClick={() => handleFocusPanel('economicFabric')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'economicFabric' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('economicFabric')}</button>
                             <button onClick={() => handleFocusPanel('aether')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'aether' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aetherInterface')}</button>
                             <button onClick={() => handleFocusPanel('agent')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'agent' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aiAgent')}</button>
                             <button onClick={() => handleFocusPanel('graph')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'graph' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dependencyGraph')}</button>
@@ -304,6 +338,7 @@ const App: React.FC = () => {
                        {activeTab === 'analysis' && <ImageAnalysis />}
                        {activeTab === 'chat' && <Chatbot />}
                        {activeTab === 'fabric' && <DataFabricView files={files} analysisResult={analysisResult} completedTasks={completedTasks} onPublish={handleOpenGitHubModal} />}
+                       {activeTab === 'economicFabric' && <EconomicFabricView />}
                        {activeTab === 'aether' && (
                            <div className="flex flex-col h-full text-sm">
                                {isGenesisModeActive ? (
@@ -369,13 +404,14 @@ const App: React.FC = () => {
                            </div>
                        )}
                         {activeTab === 'agent' && (
-                            <AgentPanel tasks={tasks} isRefactoring={isRefactoring} completedTasks={completedTasks} />
+                            <AgentPanel tasks={allTasks} isRefactoring={isRefactoring} completedTasks={completedTasks} />
                         )}
                         {activeTab === 'graph' && (
                             <DependencyGraph 
                                 nodes={graphData.nodes} 
                                 links={graphData.links}
                                 highlightedNode={highlightedNode}
+                                impactAnalysis={impactAnalysis}
                             />
                         )}
                     </div>
@@ -534,6 +570,15 @@ const App: React.FC = () => {
                     setModelConfig(newConfig);
                     setIsModelConfigModalOpen(false);
                 }}
+            />
+            <UserProfilePanel
+                isOpen={isUserProfileOpen}
+                onClose={() => setIsUserProfileOpen(false)}
+                userEmail="genesis.user@aetherium.io"
+                filesManaged={files.length}
+                protocolsExecuted={completedTasks.length}
+                imagesSynthesized={12}
+                analysesPerformed={4}
             />
         </div>
     );

@@ -1,8 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { useLocalization } from '../contexts/LocalizationContext';
-// FIX: Import `CloseIcon` to resolve reference error.
 import { ImageIcon, SpinnerIcon, DocumentScannerIcon, CloseIcon } from './icons';
 
 // Helper to convert File to base64

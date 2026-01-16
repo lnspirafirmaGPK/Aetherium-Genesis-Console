@@ -1,4 +1,3 @@
-
 import type { AetherEventType, AkashicEnvelope, IntentVector, AetherBus as IAetherBus, RefactoringTask, CodeFile } from '../types';
 
 // Simple deterministic hash for simulation of a Canonical Hash
@@ -32,6 +31,7 @@ export class AetherBus implements IAetherBus {
     private validatePayload(eventType: AetherEventType, payload: any): boolean {
         switch (eventType) {
             case 'EXECUTE_REFACTORING_PROTOCOL':
+            case 'SIMULATE_IMPACT':
                 return (
                     payload &&
                     typeof payload.id === 'string' &&
@@ -67,15 +67,21 @@ export class AetherBus implements IAetherBus {
     // anonymizing the payload into its essential components. This ensures that subscribers
     // react to the intent, not the raw data structure.
     private createIntentVector(eventType: AetherEventType, rawPayload: any): IntentVector {
+        const task = rawPayload as RefactoringTask;
         switch (eventType) {
             case 'EXECUTE_REFACTORING_PROTOCOL':
                 // Vector Extraction: Extract core protocol details, discard descriptive text.
-                const task = rawPayload as RefactoringTask;
                 return {
                     intent: 'EXECUTE_PROTOCOL',
                     targetId: task.id,
                     protocolType: task.type,
                     filesInvolved: task.filesInvolved // File paths are identifiers, not content.
+                };
+            case 'SIMULATE_IMPACT':
+                return {
+                    intent: 'SIMULATE_IMPACT',
+                    targetId: task.id,
+                    filesInvolved: task.filesInvolved,
                 };
             case 'REFACTORING_COMPLETE':
                 // The new state of the Firma is the core intent.

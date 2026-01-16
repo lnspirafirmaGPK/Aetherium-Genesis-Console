@@ -1,4 +1,3 @@
-
 import type { TranslationKey as BaseTranslationKey } from './localization';
 
 export interface CodeSymbol {
@@ -17,6 +16,12 @@ export interface Dependency {
     to: string;   // path of file being imported
 }
 
+export interface ModularityMetrics {
+    inDegree: number;
+    outDegree: number;
+    exports: number;
+}
+
 export interface AnalysisResult {
     dependencies: Dependency[];
     symbols: Map<string, CodeSymbol[]>; // Map<filePath, symbols>
@@ -24,6 +29,8 @@ export interface AnalysisResult {
     deadCodeFiles: string[];
     circularDependencies: string[][];
     circularDependencyFiles: string[][];
+    modularityMetrics: Map<string, ModularityMetrics>; // Map<filePath, metrics>
+    heatScores: Map<string, number>; // Map<filePath, heat score 0-1>
 }
 
 // For D3 Graph
@@ -32,6 +39,7 @@ export interface GraphNode {
     id: string;
     isDead: boolean;
     isCircular: boolean;
+    heat: number; // Heat score from 0 (cool) to 1 (hot)
 
     // Properties added by d3.js force simulation
     index?: number;
@@ -52,7 +60,7 @@ export interface GraphLink {
     index?: number;
 }
 
-export type RefactoringTaskType = 'BREAK_CIRCULAR_DEPENDENCY' | 'REMOVE_DEAD_CODE';
+export type RefactoringTaskType = 'BREAK_CIRCULAR_DEPENDENCY' | 'REMOVE_DEAD_CODE' | 'SPLIT_UTILITIES' | 'REVIEW_ABSTRACTION';
 
 // FIX: Removed incorrect `TranslationKey` type definition. The correct type is now imported.
 export type TranslationKey = BaseTranslationKey;
@@ -72,7 +80,8 @@ export type AetherEventType =
     | 'REFACTORING_COMPLETE'
     | 'FIRMA_NODE_SELECTED'
     | 'WISDOM_FETCH_START'
-    | 'WISDOM_FETCH_END';
+    | 'WISDOM_FETCH_END'
+    | 'SIMULATE_IMPACT';
 
 // Represents the "Vector-Only Handshake" payload
 export interface IntentVector {
@@ -130,3 +139,25 @@ export interface ModelConfig {
 }
 
 export type UserRole = 'leadDeveloper' | 'juniorDeveloper' | 'qaEngineer';
+
+// Economic Fabric Types
+export type TierId = 'tier1' | 'tier2' | 'tier3' | 'tier4' | 'tier5';
+
+export interface Tier {
+    id: TierId;
+    nameKey: TranslationKey;
+    mechanismKey: TranslationKey;
+    descriptionKey: TranslationKey;
+    baseCost: number;
+}
+
+export interface FeeCalculationParams {
+    usageFactor: number;
+    honestyDiscount: number;
+    marketAdjustment: number;
+}
+
+export interface UserEconomicProfile {
+    tier: TierId;
+    goldenKey: boolean;
+}

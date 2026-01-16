@@ -1,14 +1,20 @@
-
 import type { CodeFile, RefactoringTask } from '../types';
 
 export class RefactoringEngine {
     public static execute(files: CodeFile[], task: RefactoringTask): CodeFile[] {
+        // Use startsWith for dynamic tasks since their ID is generated
+        if (task.id.startsWith('SPLIT_UTILITIES')) {
+            return this.splitUtilities(files, task.filesInvolved[0]);
+        }
+
         switch (task.id) {
             case 'CIRCULAR_DEP_AUTH_CLIENT':
                 return this.breakCircularDependencyAuthClient(files);
             case 'DEAD_CODE_OLD_UTILS':
                 return this.removeDeadCodeOldUtils(files);
             default:
+                // For other dynamic tasks like REVIEW_ABSTRACTION, we just return the files
+                // as it's a suggestion, not an automated action.
                 return files;
         }
     }
@@ -95,6 +101,49 @@ export function anotherOldOne() {
 */
 `;
         }
+        return newFiles;
+    }
+
+    private static splitUtilities(files: CodeFile[], filePath: string): CodeFile[] {
+        let newFiles = files.map(f => ({ ...f }));
+        const sourceFile = newFiles.find(f => f.path === filePath);
+
+        if (!sourceFile || !sourceFile.content.includes('formatCurrency')) return newFiles;
+
+        // Simulate splitting formatters.ts
+        const newFormattersFile: CodeFile = {
+            path: 'src/utils/formatters-date.ts',
+            content: `
+export function formatDate(date) {
+    return date.toLocaleDateString('en-US');
+}
+`
+        };
+        
+        const newCurrencyFile: CodeFile = {
+            path: 'src/utils/formatters-currency.ts',
+            content: `
+export function formatCurrency(amount) {
+    return \`$\${amount.toFixed(2)}\`;
+}
+`
+        };
+
+        // Update files that import from the original file
+        const userProfileFile = newFiles.find(f => f.path === 'src/components/UserProfile.tsx');
+        if (userProfileFile) {
+            userProfileFile.content = userProfileFile.content.replace(`from '../utils/formatters.ts'`, `from '../utils/formatters-date.ts'`);
+        }
+
+        const settingsFile = newFiles.find(f => f.path === 'src/components/Settings.tsx');
+        if (settingsFile) {
+            settingsFile.content = settingsFile.content.replace(`from '../utils/formatters.ts'`, `from '../utils/formatters-currency.ts'`);
+        }
+        
+        // Remove the original file and add the new ones
+        newFiles = newFiles.filter(f => f.path !== filePath);
+        newFiles.push(newFormattersFile, newCurrencyFile);
+
         return newFiles;
     }
 }

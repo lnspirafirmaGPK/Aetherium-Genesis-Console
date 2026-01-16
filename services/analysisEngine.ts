@@ -1,5 +1,4 @@
-
-import type { CodeFile, CodeSymbol, Dependency, AnalysisResult } from '../types';
+import type { CodeFile, CodeSymbol, Dependency, AnalysisResult, ModularityMetrics, RefactoringTask } from '../types';
 
 // Declare acorn, which is loaded from a script tag in index.html
 declare const acorn: any;
@@ -9,6 +8,7 @@ export class AnalysisEngine {
     private dependencies: Dependency[] = [];
     private symbols: Map<string, CodeSymbol[]> = new Map();
     private usages: Map<string, number> = new Map(); // Map<symbolKey, usageCount>
+    private modularityMetrics: Map<string, ModularityMetrics> = new Map();
 
     constructor(files: CodeFile[]) {
         this.files = files;
@@ -20,6 +20,7 @@ export class AnalysisEngine {
         
         const deadCodeInfo = this.findDeadCode();
         const circularDepsInfo = this.findCircularDependencies();
+        const heatScores = this.calculateAllHeatScores();
 
         return {
             dependencies: this.dependencies,
@@ -28,13 +29,49 @@ export class AnalysisEngine {
             deadCodeFiles: deadCodeInfo.deadFiles,
             circularDependencies: circularDepsInfo.cycles,
             circularDependencyFiles: circularDepsInfo.cycleFiles,
+            modularityMetrics: this.modularityMetrics,
+            heatScores,
         };
+    }
+
+    public generateDynamicTasks(filePath: string): RefactoringTask[] {
+        const metrics = this.modularityMetrics.get(filePath);
+        const dynamicTasks: RefactoringTask[] = [];
+
+        if (!metrics) return dynamicTasks;
+
+        // Proposal for highly coupled files (many dependents)
+        if (metrics.inDegree > 3) {
+            dynamicTasks.push({
+                id: `REVIEW_ABSTRACTION_${filePath}`,
+                type: 'REVIEW_ABSTRACTION',
+                titleKey: 'task_dyn_abstraction_title',
+                descriptionKey: 'task_dyn_abstraction_desc',
+                filesInvolved: [filePath],
+                planKeys: ['task_dyn_abstraction_plan_1', 'task_dyn_abstraction_plan_2'],
+            });
+        }
+        
+        // Proposal for files with low cohesion (many exports)
+        if (metrics.exports > 2) {
+             dynamicTasks.push({
+                id: `SPLIT_UTILITIES_${filePath}`,
+                type: 'SPLIT_UTILITIES',
+                titleKey: 'task_dyn_split_utils_title',
+                descriptionKey: 'task_dyn_split_utils_desc',
+                filesInvolved: [filePath],
+                planKeys: ['task_dyn_split_utils_plan_1', 'task_dyn_split_utils_plan_2', 'task_dyn_split_utils_plan_3'],
+            });
+        }
+
+        return dynamicTasks;
     }
 
     private reset() {
         this.dependencies = [];
         this.symbols = new Map();
         this.usages = new Map();
+        this.modularityMetrics = new Map();
     }
 
     private parseAllFiles() {
@@ -58,7 +95,15 @@ export class AnalysisEngine {
             }
         });
 
-        // Pass 2: Calculate symbol usages based on parsed dependencies
+        // Pass 2: Calculate modularity metrics
+        this.files.forEach(file => {
+            const outDegree = this.dependencies.filter(d => d.from === file.path).length;
+            const inDegree = this.dependencies.filter(d => d.to === file.path).length;
+            const exports = (this.symbols.get(file.path) || []).filter(s => s.exported).length;
+            this.modularityMetrics.set(file.path, { inDegree, outDegree, exports });
+        });
+
+        // Pass 3: Calculate symbol usages based on parsed dependencies
         this.files.forEach(file => {
             const ast = asts.get(file.path);
             if (ast) {
@@ -76,6 +121,40 @@ export class AnalysisEngine {
                 });
             }
         });
+    }
+
+    private calculateAllHeatScores(): Map<string, number> {
+        const heatScores = new Map<string, number>();
+        let maxInDegree = 0, maxOutDegree = 0, maxExports = 0;
+
+        this.modularityMetrics.forEach(metrics => {
+            if (metrics.inDegree > maxInDegree) maxInDegree = metrics.inDegree;
+            if (metrics.outDegree > maxOutDegree) maxOutDegree = metrics.outDegree;
+            if (metrics.exports > maxExports) maxExports = metrics.exports;
+        });
+        
+        // Avoid division by zero
+        maxInDegree = maxInDegree || 1;
+        maxOutDegree = maxOutDegree || 1;
+        maxExports = maxExports || 1;
+
+        this.files.forEach(file => {
+            const metrics = this.modularityMetrics.get(file.path);
+            if (!metrics) {
+                heatScores.set(file.path, 0);
+                return;
+            }
+
+            const inDegreeNorm = metrics.inDegree / maxInDegree;
+            const outDegreeNorm = metrics.outDegree / maxOutDegree;
+            const exportsNorm = metrics.exports / maxExports;
+            
+            // Weighted score: Coupling (in/out degree) is more critical than cohesion (exports)
+            const heat = (inDegreeNorm * 0.45) + (outDegreeNorm * 0.35) + (exportsNorm * 0.2);
+            heatScores.set(file.path, Math.min(1, heat)); // Cap at 1
+        });
+
+        return heatScores;
     }
 
     private parseSymbols(ast: any): CodeSymbol[] {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const FileIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -7,7 +6,6 @@ export const FileIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-// FIX: Add a `title` prop and render a <title> element for accessibility.
 export const DeadCodeIcon = ({ title, ...props }: React.SVGProps<SVGSVGElement> & { title?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         {title && <title>{title}</title>}
@@ -15,7 +13,6 @@ export const DeadCodeIcon = ({ title, ...props }: React.SVGProps<SVGSVGElement> 
     </svg>
 );
 
-// FIX: Add a `title` prop and render a <title> element for accessibility.
 export const CircularDepIcon = ({ title, ...props }: React.SVGProps<SVGSVGElement> & { title?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         {title && <title>{title}</title>}
@@ -194,5 +191,49 @@ export const DownloadIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export const DocumentScannerIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5A.75.75 0 014.5 3.75h15a.75.75 0 01.75.75v15a.75.75 0 01-.75.75h-15a.75.75 0 01-.75-.75v-15zm3 3.75a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zm0 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5a.75.75 0 01-.75-.75z" />
+    </svg>
+);
+
+export const UserCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+);
+
+export const CurrencyDollarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+export const KeyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+    </svg>
+);
+
+export const ScaleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.036.243c-2.132 0-4.14-.818-5.62-2.24l-2.743-2.743a3.375 3.375 0 00-4.771 0l-2.743 2.743A5.988 5.988 0 013 16.488c-.692 0-1.375-.085-2.036-.243-.484-.174-.712-.703-.59-1.202L3 4.971m15.75 0c.333-.042.66-.09.982-.138a2.25 2.25 0 00-1.218-4.22L12 2.5l-1.536.223a2.25 2.25 0 00-1.218 4.22c.322.048.65.096.982.138m12.75 0A48.19 48.19 0 0112 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c-1.01.143-2.01.317-3 .52m3-.52l-2.62 10.726" />
+    </svg>
+);
+
+export const EyeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639l4.418-5.571a2.126 2.126 0 013.164 0l4.418 5.571a1.012 1.012 0 010 .639l-4.418 5.571a2.126 2.126 0 01-3.164 0l-4.418-5.571z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+);
+
+export const ArchiveBoxIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+    </svg>
+);
+
+export const GlobeAltIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 01-.5-17.983V3.017a9 9 0 01.5 17.983z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 000-18h.008a9 9 0 010 18H12zm0 0a9 9 0 01-8.58-6H20.58A9 9 0 0112 21zM3.42 15a9 9 0 008.58 6V9a9 9 0 00-8.58 6zM20.58 15a9 9 0 01-8.58 6V9a9 9 0 018.58 6z" />
     </svg>
 );

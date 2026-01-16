@@ -1,15 +1,15 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { AgentIcon, SettingsIcon, LanguageIcon, GitHubIcon, CpuChipIcon } from './icons';
+import { AgentIcon, SettingsIcon, LanguageIcon, GitHubIcon, CpuChipIcon, UserCircleIcon } from './icons';
 import { useLocalization } from '../contexts/LocalizationContext';
 
 interface ToolbarProps {
     onAnalyze: () => void;
     onUpload: () => void;
     onOpenModelConfig: () => void;
+    onOpenUserProfile: () => void;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenModelConfig }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenModelConfig, onOpenUserProfile }) => {
     const { t, setLanguage, language } = useLocalization();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -102,6 +102,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenMod
                     </div>
                 )}
             </div>
+             <button
+                onClick={onOpenUserProfile}
+                className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors duration-200"
+                title={t('userProfile')}
+            >
+                <UserCircleIcon className="w-6 h-6" />
+            </button>
         </div>
     );
 };
