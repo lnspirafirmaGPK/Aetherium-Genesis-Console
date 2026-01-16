@@ -2,7 +2,7 @@ import random
 import asyncio
 from aether_bus import AetherBus
 from identity import ZoIdentity
-from memory import Vault
+from memory.vault import Vault
 
 class IntentProcessor:
     def __init__(self, bus: AetherBus):

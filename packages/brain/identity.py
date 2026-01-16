@@ -1,56 +1,86 @@
-import uuid
-import time
-import secrets
+import logging
+import random
 
-class ZoIdentity:
-    def __init__(self, role="SYSTEM_CORE"):
-        self.role = role
-        self.id = str(uuid.uuid4())
-        self.current_token = None
-        self.refresh_token()
+logger = logging.getLogger("PRGX.Triad")
 
-    def refresh_token(self):
-        # Generate a secure random hex token
-        self.current_token = secrets.token_hex(32)
-        return self.current_token
-
-    def get_identity_header(self):
-        return {
-            "source_id": self.id,
-            "role": self.role,
-            "token": self.current_token,
-            "timestamp": time.time()
-        }
-
-class PRGX1:
+class PRGX1_Sentry:
     """
-    The Immune System: Guardrails and Validation
+    The Defense Layer.
+    Audit and Guardrails.
     """
     @staticmethod
-    def validate_payload(payload, expected_token=None):
-        # 1. Check Structure (MCP-like)
-        if "jsonrpc" not in payload or payload["jsonrpc"] != "2.0":
-            return False, "Invalid JSON-RPC version"
+    def inspect(payload):
+        # Basic Guardrail logic
+        if not payload.get("intent_vector"):
+            logger.warning("PRGX1: Missing intent vector. Blocking.")
+            return False, "MISSING_VECTOR"
 
-        if "method" not in payload:
-            return False, "Missing method"
-
-        # 2. Security Token Check
-        # In a real system, we would verify signature.
-        # Here we check presence and basic format.
-        params = payload.get("params", {})
-        identity = params.get("_identity", {})
-
-        if not identity.get("token"):
-            return False, "Missing Security Token"
-
-        # 3. Content Safety (Hallucination/Out-of-bounds check)
-        # Example: Energy level must be 0.0 - 1.0
-        args = params.get("arguments", {})
-        vibe = args.get("vibe_state", {})
-        if "energy_level" in vibe:
-            level = vibe["energy_level"]
-            if not isinstance(level, (int, float)) or level < 0.0 or level > 1.0:
-                return False, f"Energy level out of bounds: {level}"
+        # Parajika Check (Mock)
+        if payload.get("vibe_score", 0) < -0.9:
+            logger.critical("PRGX1: PARAJIKA DETECTED (Negative Vibe).")
+            return False, "PARAJIKA"
 
         return True, "CLEAN"
+
+class PRGX2_Alchemist:
+    """
+    The Cognitive Loop (RSI).
+    Transmutes Vibe into Physics Parameters.
+    """
+    @staticmethod
+    def transmute(sati_vibe, intent_vector):
+        """
+        Convert observed vibe into PhysicsParams for the Shader.
+        """
+        tone = sati_vibe["tone"]
+        intensity = sati_vibe["intensity"]
+
+        # Procedural Color Alchemy
+        color_base = "#2323ee" # Default Blue
+        ripple = "calm_waves"
+
+        if tone == "FOCUSED":
+            color_base = "#ffffff" # White
+            ripple = "sharp_beams"
+        elif tone == "WARNING":
+            color_base = "#ff0000" # Red
+            ripple = "chaotic_noise"
+        elif tone == "WAKING":
+            color_base = "#00ffff" # Cyan
+            ripple = "expanding_rings"
+
+        physics_params = {
+            "intent_vector": intent_vector,
+            "vibe_score": sati_vibe["score"],
+            "emotional_tone": tone,
+            "neural_shader_params": {
+                "color_base": color_base,
+                "vibe_intensity": intensity,
+                "ripple_pattern": ripple
+            },
+            "triggered_ritual": "normal", # Default
+            "timestamp": "NOW" # Placeholder
+        }
+
+        logger.info(f"⚗️ PRGX2 Transmuted: {tone} -> {color_base}")
+        return physics_params
+
+class PRGX3_Diplomat:
+    """
+    Reality Anchoring / Dialog.
+    Handles fallback and external communication.
+    """
+    @staticmethod
+    def negotiate(error_reason):
+        logger.info(f"🕊️ PRGX3 Negotiating: {error_reason}")
+        return {
+            "action": "DIPLOMACY",
+            "message": "I cannot perceive your intent clearly. Please realign.",
+            "fallback_shader": "static_noise"
+        }
+
+class PRGX_Triad:
+    def __init__(self):
+        self.sentry = PRGX1_Sentry()
+        self.alchemist = PRGX2_Alchemist()
+        self.diplomat = PRGX3_Diplomat()

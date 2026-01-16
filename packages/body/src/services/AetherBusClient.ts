@@ -1,23 +1,8 @@
-export interface IntentPayload {
-    type?: string; // Add type support
-    text?: string;
-    vibe_state: {
-      mood: string;
-      energy_level: number;
-      urgency: number;
-    };
-    render_params: {
-      geometry: string;
-      chroma_primary: string;
-      chroma_secondary: string;
-      pulse_frequency: number;
-      bloom_factor: number;
-    };
-}
+import { PhysicsParams } from '../types/intent';
 
 export class AetherBusClient {
     private ws: WebSocket;
-    private messageHandler: ((payload: IntentPayload) => void) | null = null;
+    private messageHandler: ((payload: PhysicsParams) => void) | null = null;
 
     constructor(url: string) {
         this.ws = new WebSocket(url);
@@ -30,14 +15,15 @@ export class AetherBusClient {
             try {
                 const data = JSON.parse(event.data);
 
-                if (data.jsonrpc === "2.0" && data.method && data.params) {
-                    const intent = data.params.arguments;
+                // Validate MCP & PhysicsParams
+                if (data.jsonrpc === "2.0" && data.method === "ui:shader_intent" && data.params) {
+                    const physics = data.params.arguments as PhysicsParams;
                     if (this.messageHandler) {
-                        this.messageHandler(intent);
+                        this.messageHandler(physics);
                     }
                 }
             } catch (e) {
-                console.error('Failed to parse Intent:', e);
+                console.error('Failed to parse PhysicsParams:', e);
             }
         };
 
@@ -46,15 +32,13 @@ export class AetherBusClient {
         };
     }
 
-    public onMessage(handler: (payload: IntentPayload) => void) {
+    public onMessage(handler: (payload: PhysicsParams) => void) {
         this.messageHandler = handler;
     }
 
     public send(message: string) {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(message);
-        } else {
-            console.warn("WebSocket not open. Cannot send message.");
         }
     }
 

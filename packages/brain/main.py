@@ -3,9 +3,10 @@ import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from aether_bus import AetherBus
-from bio_driver import MockBioDriver
-from intent_processor import IntentProcessor
-from identity import PRGX1
+from sati import SATI
+from identity import PRGX_Triad
+from memory.akashic_vault import AkashicVault
+from rituals.startup_ritual import perform_startup_ritual
 
 app = FastAPI()
 
@@ -20,14 +21,16 @@ app.add_middleware(
 
 # Initialize Core Systems
 bus = AetherBus()
-# driver = MockBioDriver(bus) # Disable background driver for this phase to focus on Interaction
-intent_core = IntentProcessor(bus)
+sati = SATI()
+prgx = PRGX_Triad()
+vault = AkashicVault()
 
 @app.on_event("startup")
 async def startup_event():
-    # Start the BioDriver loop in background (Optional now)
-    # asyncio.create_task(driver.start_loop())
-    pass
+    success = await perform_startup_ritual()
+    if not success:
+        print("FATAL: Startup Ritual Failed")
+        exit(1)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -35,17 +38,7 @@ async def websocket_endpoint(websocket: WebSocket):
     print("Client connected to AetherBus Gateway")
 
     async def send_to_client(message: str):
-        try:
-            payload = json.loads(message)
-            # PRGX1 Validation
-            valid, reason = PRGX1.validate_payload(payload)
-            if not valid:
-                print(f"PRGX1 Blocked Outgoing: {reason}")
-                return
-            await websocket.send_text(message)
-        except Exception as e:
-            print(f"WS Send Error: {e}")
-            raise e
+        await websocket.send_text(message)
 
     bus.subscribe(send_to_client)
 
@@ -53,18 +46,43 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             try:
-                # Handle Incoming Body Signals
                 message = json.loads(data)
                 method = message.get("method")
 
                 if method == "input/voice_data":
-                    print("Brain: Received Voice Data. Entering MANANA (Processing)...")
-                    # Trigger Intent Processing
-                    await intent_core.process_voice_input(message.get("params", {}).get("text", "UNKNOWN"))
+                    print("Brain: Received Voice Data.")
+                    params = message.get("params", {})
+                    text = params.get("text", "")
 
-                elif method == "input/confirm_intent":
-                    print("Brain: Received Intent Confirmation. Manifesting...")
-                    await intent_core.confirm_intent()
+                    # 1. SATI Observation
+                    # Mock Vibe Score extraction (In real system, this comes from Audio Model)
+                    vibe_score = 0.8 # Mock Positive
+                    tone = "WAKING"
+                    current_vibe = sati.observe(text, vibe_score, tone)
+                    intent_vector = sati.encode_intent(text)
+
+                    # 2. PRGX1 Sentry Check
+                    valid, reason = prgx.sentry.inspect({"intent_vector": intent_vector, "vibe_score": vibe_score})
+                    if not valid:
+                        print(f"PRGX1 Blocked: {reason}")
+                        # Trigger Diplomat?
+                        continue
+
+                    # 3. PRGX2 Alchemist Transmutation (RSI Loop)
+                    physics_params = prgx.alchemist.transmute(current_vibe, intent_vector)
+
+                    # 4. Akashic Record Commit
+                    vault.commit_change(physics_params, text)
+
+                    # 5. GenUI Manifestation (Publish)
+                    payload = {
+                        "jsonrpc": "2.0",
+                        "method": "ui:shader_intent",
+                        "params": {
+                            "arguments": physics_params
+                        }
+                    }
+                    await bus.publish("ui:shader_intent", payload, {"source": "brain"})
 
             except json.JSONDecodeError:
                 pass

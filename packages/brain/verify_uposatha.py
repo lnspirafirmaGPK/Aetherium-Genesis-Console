@@ -1,6 +1,6 @@
 import time
 from datetime import datetime, timedelta
-from memory import Vault
+from memory.vault import Vault
 from rituals.uposatha import UposathaCleaner
 
 def verify_uposatha():

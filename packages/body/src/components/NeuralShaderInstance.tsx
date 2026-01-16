@@ -1,46 +1,30 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Canvas, Fill, Shader } from '@shopify/react-native-skia';
+import { PhysicsParams } from '../types/intent';
 
-export interface IntentPayload {
-  vibe_state: {
-    mood: string;
-    energy_level: number;
-    urgency: number;
-  };
-  render_params: {
-    chroma_primary: string;
-    chroma_secondary: string;
-    pulse_frequency: number;
-    bloom_factor: number;
-  };
-}
-
-interface LivingLightProps {
-  intent: IntentPayload | null;
+interface NeuralShaderInstanceProps {
+  physicsParams: PhysicsParams | null;
   skia: any;
 }
 
-// ORGANIC FLUID SHADER (The Soul)
+// ORGANIC FLUID SHADER (The Soul) - Enhanced for PhysicsParams
 const SHADER_CODE = `
 uniform float u_time;
 uniform float2 u_resolution;
-uniform float3 u_color_primary;
-uniform float3 u_color_secondary;
-uniform float u_energy;
-uniform float u_pulse_freq;
+uniform float3 u_color_base;
+uniform float u_vibe_intensity;
+uniform float u_ripple_mode; // 0=calm, 1=sharp, 2=chaotic
 
-// Smooth Union (Metaball logic)
+// Smooth Union
 float smin(float a, float b, float k) {
     float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
     return mix(b, a, h) - k * h * (1.0 - h);
 }
 
-// Noise function
 float noise(float3 p) {
     return fract(sin(dot(p, float3(12.9898, 78.233, 45.164))) * 43758.5453);
 }
 
-// FBM (Fractal Brownian Motion) for smoke/cloud effect
 float fbm(float3 p) {
     float v = 0.0;
     float amp = 0.5;
@@ -56,46 +40,49 @@ float4 main(float2 pos) {
     float2 uv = (pos - u_resolution * 0.5) / min(u_resolution.x, u_resolution.y);
     float t = u_time;
 
-    // Breathing / Pulse
-    float pulse = sin(t * u_pulse_freq * 3.14) * 0.5 + 0.5;
+    // Vibe Intensity modulates speed and scale
+    float speed = 1.0 + u_vibe_intensity * 2.0;
 
-    // Core Nucleus (Orb)
-    float d1 = length(uv) - 0.2 - (u_energy * 0.1) - (pulse * 0.05);
+    // Base Pulse
+    float pulse = sin(t * speed) * 0.5 + 0.5;
 
-    // Wandering Satellite (Organic movement)
-    float2 satPos = float2(sin(t * 0.5), cos(t * 0.7)) * 0.3;
-    float d2 = length(uv - satPos) - 0.1;
+    // Core Shape
+    float d = length(uv) - 0.3 - (u_vibe_intensity * 0.2);
 
-    // Smooth Union (The Fusion)
-    float d = smin(d1, d2, 0.3); // k=0.3 for viscous look
+    // Ripple Logic (Procedural Pattern)
+    if (u_ripple_mode > 1.5) {
+        // Chaotic (Red)
+        d += fbm(float3(uv * 5.0, t)) * 0.5;
+    } else if (u_ripple_mode > 0.5) {
+        // Sharp (White)
+        d += sin(atan(uv.y, uv.x) * 10.0 + t) * 0.05;
+    } else {
+        // Calm (Blue)
+        d += sin(length(uv) * 10.0 - t) * 0.02;
+    }
 
-    // Add FBM Noise distortion (Viscosity)
-    float n = fbm(float3(uv * 3.0, t * 0.2));
-    d -= n * 0.1 * u_energy;
+    // Organic Distortion
+    float n = fbm(float3(uv * 2.0, t * 0.5));
+    d -= n * 0.1;
 
-    // Glow / Bioluminescence
-    float glow = 0.015 / abs(d);
+    // Glow
+    float glow = 0.02 / abs(d);
 
     // Color
-    float3 col = mix(u_color_primary, u_color_secondary, length(uv) + n);
+    float3 col = u_color_base;
 
-    // Final Composition
-    float3 finalColor = col * glow * (1.0 + pulse * 0.5);
-
-    // Alpha for blending
     float alpha = smoothstep(0.01, 0.0, d);
-    finalColor += col * alpha * 0.8;
+    float3 finalColor = col * (alpha + glow);
 
     return float4(finalColor, 1.0);
 }
 `;
 
-const LivingLight: React.FC<LivingLightProps> = ({ intent, skia }) => {
+const NeuralShaderInstance: React.FC<NeuralShaderInstanceProps> = ({ physicsParams, skia }) => {
   const [time, setTime] = useState(0);
   const startTimeRef = useRef(Date.now());
   const requestRef = useRef<number>();
 
-  // Create RuntimeEffect using the injected Skia instance
   const source = useMemo(() => {
     if (!skia || !skia.RuntimeEffect) return null;
     return skia.RuntimeEffect.Make(SHADER_CODE);
@@ -113,28 +100,34 @@ const LivingLight: React.FC<LivingLightProps> = ({ intent, skia }) => {
     };
   }, []);
 
-  const energy = intent?.vibe_state.energy_level || 0.5;
-  const pulseFreq = intent?.render_params.pulse_frequency || 1.0;
-
   const hexToFloat3 = (hex: string) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? [
         parseInt(result[1], 16) / 255,
         parseInt(result[2], 16) / 255,
         parseInt(result[3], 16) / 255
-      ] : [0, 1, 1];
+      ] : [0, 0, 1]; // Default Blue
   };
 
-  const uColorPrimary = useMemo(() => hexToFloat3(intent?.render_params.chroma_primary || "#00FFFF"), [intent]);
-  const uColorSecondary = useMemo(() => hexToFloat3(intent?.render_params.chroma_secondary || "#FF00FF"), [intent]);
+  // Map params
+  const colorBase = useMemo(() =>
+    hexToFloat3(physicsParams?.neural_shader_params.color_base || "#2323ee"),
+  [physicsParams]);
+
+  const intensity = physicsParams?.neural_shader_params.vibe_intensity || 0.0;
+
+  // Ripple Mode Map
+  let rippleMode = 0.0;
+  const pattern = physicsParams?.neural_shader_params.ripple_pattern;
+  if (pattern === "sharp_beams") rippleMode = 1.0;
+  if (pattern === "chaotic_noise") rippleMode = 2.0;
 
   const uniforms = {
       u_time: time,
       u_resolution: [window.innerWidth, window.innerHeight],
-      u_color_primary: uColorPrimary,
-      u_color_secondary: uColorSecondary,
-      u_energy: energy,
-      u_pulse_freq: pulseFreq
+      u_color_base: colorBase,
+      u_vibe_intensity: intensity,
+      u_ripple_mode: rippleMode
   };
 
   if (!source) return null;
@@ -149,4 +142,4 @@ const LivingLight: React.FC<LivingLightProps> = ({ intent, skia }) => {
   );
 };
 
-export default LivingLight;
+export default NeuralShaderInstance;
