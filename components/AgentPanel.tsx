@@ -27,7 +27,6 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ tasks, isRefactoring, co
              const nextTask = tasks.find(t => !completedTasks.includes(t.id)) || null;
              setSelectedTask(nextTask);
         } else if (!selectedTask && tasks.length > 0) {
-             // If no task is selected, select the first available one.
              const nextTask = tasks.find(t => !completedTasks.includes(t.id)) || null;
              setSelectedTask(nextTask);
         }
