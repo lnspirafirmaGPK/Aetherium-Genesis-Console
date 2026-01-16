@@ -19,7 +19,8 @@ import { CliExtensionView } from './components/CliExtensionView';
 import { NexusHub } from './components/NexusHub';
 import { SystemAssuranceView } from './components/SystemAssuranceView';
 import { Notification as NotificationComponent } from './components/Notification';
-import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig, Notification, AppTab } from './types';
+import { GlobalSearch } from './components/GlobalSearch';
+import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig, Notification, AppTab, SearchableModule } from './types';
 import { AnalysisEngine } from './services/analysisEngine';
 import { RefactoringEngine } from './services/refactoringEngine';
 import { MOCK_FILE_SYSTEM, ARCHITECT_EMAIL } from './constants';
@@ -293,6 +294,15 @@ const App: React.FC = () => {
         }
         setActiveView('ide');
     };
+    
+    const handleNavigateToModule = (tab: AppTab | 'aether-canvas') => {
+        handleLaunchModule(tab);
+    };
+
+    const handleSelectFileFromSearch = (file: CodeFile) => {
+        handleSelectFile(file);
+        setActiveView('ide');
+    };
 
     const graphData = useMemo(() => {
         if (!analysisResult) return { nodes: [], links: [] };
@@ -310,6 +320,18 @@ const App: React.FC = () => {
         graph: 'dependencyGraph', cli: 'cliExtensionHub', assurance: 'systemAssurance'
     };
     
+    const searchableModules: SearchableModule[] = [
+        { name: t('firmaIDE'), description: t('hubIDEDesc'), tab: 'graph', icon: '💻' },
+        { name: t('aiAgent'), description: t('hubAICoreDesc'), tab: 'agent', icon: '🤖' },
+        { name: t('cliExtensionHub'), description: t('cliExtensionHub'), tab: 'cli', icon: '🖥️' },
+        { name: t('imageGenesis'), description: t('imageGenesisDesc'), tab: 'genesis', icon: '🎨' },
+        { name: t('imageAnalysis'), description: t('imageAnalysisDesc'), tab: 'analysis', icon: '🔍' },
+        { name: t('aetherInterface'), description: t('aetherInterfaceDesc'), tab: 'aether', icon: '✨' },
+        { name: t('dataFabric'), description: t('dataFabricDesc'), tab: 'fabric', icon: '🌐' },
+        { name: t('systemAssurance'), description: t('systemAssurance'), tab: 'assurance', icon: '🛡️' },
+        { name: t('economicFabric'), description: t('economicFabricDesc'), tab: 'economicFabric', icon: '💰' },
+    ];
+
     if (activeView === 'hub' && currentUser) {
         return <NexusHub user={currentUser} onLaunchModule={handleLaunchModule} />;
     }
@@ -320,8 +342,16 @@ const App: React.FC = () => {
 
     return (
         <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
-            <header className="bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-lg">
-                <h1 className="text-2xl font-bold text-cyan-400">{t('appTitle')}</h1>
+            <header className="bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-lg gap-4">
+                <h1 className="text-2xl font-bold text-cyan-400 shrink-0">{t('appTitle')}</h1>
+                <div className="flex-grow max-w-2xl">
+                    <GlobalSearch 
+                        modules={searchableModules} 
+                        files={files}
+                        onNavigateToModule={handleNavigateToModule}
+                        onSelectFile={handleSelectFileFromSearch}
+                    />
+                </div>
                 <Toolbar onAnalyze={handleScan} onUpload={handleOpenGitHubModal} onOpenModelConfig={() => setIsModelConfigModalOpen(true)}
                     onOpenUserProfile={() => setIsUserProfileOpen(true)} onShowHub={handleShowHub} onGoBack={handleGoBack} canGoBack={navHistory.length > 0} />
             </header>

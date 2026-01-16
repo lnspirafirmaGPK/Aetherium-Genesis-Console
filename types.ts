@@ -208,3 +208,10 @@ export interface TransactionEntry {
 }
 
 export type AppTab = 'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric' | 'cli' | 'assurance';
+
+export interface SearchableModule {
+    name: string;
+    description: string;
+    tab: AppTab | 'aether-canvas';
+    icon: string;
+}
