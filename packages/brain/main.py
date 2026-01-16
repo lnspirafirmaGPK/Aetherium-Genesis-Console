@@ -4,6 +4,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from aether_bus import AetherBus
 from bio_driver import MockBioDriver
+from intent_processor import IntentProcessor
 from identity import PRGX1
 
 app = FastAPI()
@@ -19,49 +20,57 @@ app.add_middleware(
 
 # Initialize Core Systems
 bus = AetherBus()
-driver = MockBioDriver(bus)
+# driver = MockBioDriver(bus) # Disable background driver for this phase to focus on Interaction
+intent_core = IntentProcessor(bus)
 
 @app.on_event("startup")
 async def startup_event():
-    # Start the BioDriver loop in background
-    asyncio.create_task(driver.start_loop())
+    # Start the BioDriver loop in background (Optional now)
+    # asyncio.create_task(driver.start_loop())
+    pass
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("Client connected to AetherBus Gateway")
 
-    # Callback to send message to this specific websocket
     async def send_to_client(message: str):
         try:
-            # Validate Outgoing? (Optional, PRGX1 typically validates Incoming from LLM,
-            # but here we can validate before sending to Body)
             payload = json.loads(message)
+            # PRGX1 Validation
             valid, reason = PRGX1.validate_payload(payload)
             if not valid:
                 print(f"PRGX1 Blocked Outgoing: {reason}")
                 return
-
             await websocket.send_text(message)
         except Exception as e:
             print(f"WS Send Error: {e}")
-            raise e # Trigger disconnect handling
+            raise e
 
-    # Subscribe this client to the bus
     bus.subscribe(send_to_client)
 
     try:
         while True:
-            # Keep connection open and listen for client messages (Heartbeats/Interactions)
-            # In a full system, the Body might send "Touched" events back.
             data = await websocket.receive_text()
-            # We could process client intents here...
+            try:
+                # Handle Incoming Body Signals
+                message = json.loads(data)
+                method = message.get("method")
+
+                if method == "input/voice_data":
+                    print("Brain: Received Voice Data. Entering MANANA (Processing)...")
+                    # Trigger Intent Processing
+                    await intent_core.process_voice_input(message.get("params", {}).get("text", "UNKNOWN"))
+
+                elif method == "input/confirm_intent":
+                    print("Brain: Received Intent Confirmation. Manifesting...")
+                    await intent_core.confirm_intent()
+
+            except json.JSONDecodeError:
+                pass
 
     except WebSocketDisconnect:
         print("Client disconnected")
-        # In a real Pub/Sub, we would unsubscribe.
-        # For this prototype, the send_to_client closure might leak or fail,
-        # but AetherBus handles exception in publish loop.
         if send_to_client in bus.subscribers:
             bus.subscribers.remove(send_to_client)
 

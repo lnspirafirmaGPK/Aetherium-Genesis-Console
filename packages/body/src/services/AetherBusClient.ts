@@ -1,4 +1,6 @@
 export interface IntentPayload {
+    type?: string; // Add type support
+    text?: string;
     vibe_state: {
       mood: string;
       energy_level: number;
@@ -26,18 +28,13 @@ export class AetherBusClient {
 
         this.ws.onmessage = (event) => {
             try {
-                // MCP Payload Parsing
                 const data = JSON.parse(event.data);
 
-                // Validate MCP Structure
                 if (data.jsonrpc === "2.0" && data.method && data.params) {
-                    // Extract the Intent Payload from params.arguments
                     const intent = data.params.arguments;
                     if (this.messageHandler) {
                         this.messageHandler(intent);
                     }
-                } else {
-                    console.warn("Received non-MCP payload:", data);
                 }
             } catch (e) {
                 console.error('Failed to parse Intent:', e);
@@ -51,6 +48,14 @@ export class AetherBusClient {
 
     public onMessage(handler: (payload: IntentPayload) => void) {
         this.messageHandler = handler;
+    }
+
+    public send(message: string) {
+        if (this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(message);
+        } else {
+            console.warn("WebSocket not open. Cannot send message.");
+        }
     }
 
     public close() {
