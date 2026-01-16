@@ -197,6 +197,46 @@
             .login-box { padding: 2rem; }
         }
         
+        /* Account Picker Modal */
+        .account-picker-container {
+            position: fixed;
+            inset: 0;
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .account-picker-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .account-picker-header {
+            text-align: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .account-picker-header h2 { margin: 0; font-size: 1.5rem; color: #e0f2fe; }
+        .account-picker-header p { margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.9rem; }
+
+        .account-list { list-style: none; padding: 0.5rem; margin: 0; }
+        .account-list li { display: flex; align-items: center; padding: 0.75rem; cursor: pointer; transition: background-color 0.2s; border-radius: 8px; }
+        .account-list li:hover { background-color: rgba(56, 189, 248, 0.1); }
+        .account-list svg { width: 2.5rem; height: 2.5rem; margin-right: 1rem; color: #94a3b8; background: #334155; border-radius: 50%; padding: 0.5rem; }
+        .account-list li div { display: flex; flex-direction: column; }
+        .account-list li strong { font-weight: 500; color: #e2e8f0; }
+        .account-list li span { font-size: 0.9rem; color: #94a3b8; }
+
         /* Privacy Modal */
         .privacy-modal-container {
             position: fixed;
@@ -282,6 +322,35 @@
         </div>
     </div>
 
+    <div class="account-picker-container hidden" id="account-picker-container">
+        <div class="account-picker-box">
+            <div class="account-picker-header">
+                <h2 id="account-picker-h2">Choose an account</h2>
+                <p id="account-picker-p">to continue to Aetherium Genesis</p>
+            </div>
+            <ul class="account-list" id="account-list">
+                <li data-email="lnspirafirma@gmail.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <div>
+                        <strong id="architect-name">Architect</strong>
+                        <span>lnspirafirma@gmail.com</span>
+                    </div>
+                </li>
+                <li data-email="general.user@example.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <div>
+                        <strong id="general-user-name">General User</strong>
+                        <span>general.user@example.com</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <div class="privacy-modal-container hidden" id="privacy-modal-container">
         <div class="privacy-modal-box">
             <div class="privacy-modal-header">
@@ -357,6 +426,10 @@
                 privacyLi3: "บัญชี Google Drive ส่วนตัวของคุณ",
                 privacyLi4: "ที่เก็บข้อมูลในอุปกรณ์ของคุณ",
                 privacyP3: "หากคุณไม่บันทึกงานของคุณอย่างชัดเจน งานนั้นจะถูกเก็บไว้ชั่วคราวสำหรับเซสชันปัจจุบันของคุณเท่านั้น ข้อมูลนี้จะ<strong>สูญหายอย่างถาวร</strong>หากแอปพลิเคชันถูกปิด, รีสตาร์ท, หรือถอนการติดตั้ง",
+                accountPickerH2: "เลือกบัญชี",
+                accountPickerP: "เพื่อดำเนินการต่อใน Aetherium Genesis",
+                architectName: "สถาปนิก",
+                generalUserName: "ผู้ใช้ทั่วไป",
             };
 
             const t = thTranslations;
@@ -379,6 +452,10 @@
             document.getElementById('privacy-li3').textContent = t.privacyLi3;
             document.getElementById('privacy-li4').textContent = t.privacyLi4;
             document.getElementById('privacy-p3').innerHTML = t.privacyP3;
+            document.getElementById('account-picker-h2').textContent = t.accountPickerH2;
+            document.getElementById('account-picker-p').textContent = t.accountPickerP;
+            document.getElementById('architect-name').textContent = t.architectName;
+            document.getElementById('general-user-name').textContent = t.generalUserName;
         }
 
         setInitialLanguage();
@@ -390,6 +467,8 @@
         const privacyLink = document.getElementById('privacy-link');
         const privacyModalContainer = document.getElementById('privacy-modal-container');
         const privacyModalClose = document.getElementById('privacy-modal-close');
+        const accountPickerContainer = document.getElementById('account-picker-container');
+        const accountList = document.getElementById('account-list');
         let interactionComplete = false;
 
         function showLogin() {
@@ -416,6 +495,7 @@
                 if (content) content.remove();
                 if (loginContainer) loginContainer.remove();
                 if (privacyModalContainer) privacyModalContainer.remove();
+                if (accountPickerContainer) accountPickerContainer.remove();
                 
                 if (root) root.style.display = 'block';
                 document.body.style.background = '#0f172a'; // Match app background
@@ -442,6 +522,24 @@
                 setTimeout(() => { 
                     privacyModalContainer.classList.add('hidden');
                     privacyModalContainer.style.display = 'none';
+                }, 300);
+            }
+        }
+        
+        function showAccountPicker() {
+            if (accountPickerContainer) {
+                accountPickerContainer.classList.remove('hidden');
+                accountPickerContainer.style.display = 'flex';
+                setTimeout(() => { accountPickerContainer.style.opacity = '1'; }, 10);
+            }
+        }
+
+        function hideAccountPicker() {
+            if (accountPickerContainer) {
+                accountPickerContainer.style.opacity = '0';
+                setTimeout(() => { 
+                    accountPickerContainer.classList.add('hidden');
+                    accountPickerContainer.style.display = 'none';
                 }, 300);
             }
         }
@@ -478,9 +576,26 @@
             }
         });
 
-        googleBtn.addEventListener('click', () => {
-            launchApp('general.user@example.com');
-        });
+        googleBtn.addEventListener('click', showAccountPicker);
+        
+        if (accountList) {
+            accountList.querySelectorAll('li').forEach(item => {
+                item.addEventListener('click', () => {
+                    const email = item.getAttribute('data-email');
+                    if (email) {
+                        launchApp(email);
+                    }
+                });
+            });
+        }
+        
+        if (accountPickerContainer) {
+            accountPickerContainer.addEventListener('click', (e) => {
+                if (e.target === accountPickerContainer) {
+                    hideAccountPicker();
+                }
+            });
+        }
 
         privacyLink.addEventListener('click', (e) => {
             e.preventDefault();
