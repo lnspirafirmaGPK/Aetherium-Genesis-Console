@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AgentIcon, SettingsIcon, LanguageIcon, GitHubIcon, CpuChipIcon, UserCircleIcon } from './icons';
+import { AgentIcon, SettingsIcon, LanguageIcon, GitHubIcon, CpuChipIcon, UserCircleIcon, HomeIcon } from './icons';
 import { useLocalization } from '../contexts/LocalizationContext';
 
 interface ToolbarProps {
@@ -7,9 +7,10 @@ interface ToolbarProps {
     onUpload: () => void;
     onOpenModelConfig: () => void;
     onOpenUserProfile: () => void;
+    onGoToHub: () => void;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenModelConfig, onOpenUserProfile }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenModelConfig, onOpenUserProfile, onGoToHub }) => {
     const { t, setLanguage, language } = useLocalization();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,6 +37,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onAnalyze, onUpload, onOpenMod
 
     return (
         <div className="flex items-center space-x-2">
+            <button
+                onClick={onGoToHub}
+                className="flex items-center px-4 py-2 bg-gray-700 hover:bg-cyan-600 rounded-md transition-colors duration-200"
+                title={t('hub')}
+            >
+                <HomeIcon className="w-5 h-5" />
+            </button>
             <button
                 onClick={onAnalyze}
                 className="flex items-center px-4 py-2 bg-gray-700 hover:bg-cyan-600 rounded-md transition-colors duration-200"

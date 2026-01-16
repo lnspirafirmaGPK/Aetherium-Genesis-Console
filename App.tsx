@@ -14,6 +14,7 @@ import { ConfirmationModal } from './components/ConfirmationModal';
 import { ModelConfigModal } from './components/ModelConfigModal';
 import { UserProfilePanel } from './components/UserProfilePanel';
 import { EconomicFabricView } from './components/EconomicFabricView';
+import { HubView } from './components/HubView';
 import { Notification as NotificationComponent } from './components/Notification';
 import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig, Notification } from './types';
 import { AnalysisEngine } from './services/analysisEngine';
@@ -36,6 +37,9 @@ const App: React.FC = () => {
     const [isRefactoring, setIsRefactoring] = useState(false);
     const [completedTasks, setCompletedTasks] = useState<string[]>([]);
     const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
+    
+    // State for the main view
+    const [activeView, setActiveView] = useState<'hub' | 'ide'>('hub');
     
     // State for the Core Monitor
     const [lightPulseState, setLightPulseState] = useState<LightPulseState>('IDLE');
@@ -274,6 +278,22 @@ const App: React.FC = () => {
             setGithubModalStep('success');
         }, 2000);
     };
+    
+    const handleNavigate = (view: 'hub' | 'ide', tab?: (typeof activeTab) | 'profile') => {
+        setActiveView(view);
+
+        if (view === 'ide') {
+            if (tab === 'profile') {
+                setIsUserProfileOpen(true);
+            } else if (tab) {
+                setActiveTab(tab);
+                setFocusedView('panel');
+            } else {
+                // Default to editor view if no specific tab is requested
+                setFocusedView('editor');
+            }
+        }
+    };
 
     const graphData = useMemo(() => {
         if (!analysisResult) return { nodes: [], links: [] };
@@ -307,6 +327,10 @@ const App: React.FC = () => {
         graph: 'dependencyGraph',
     };
 
+    if (activeView === 'hub') {
+        return <HubView userEmail={currentUserEmail} onNavigate={handleNavigate} />;
+    }
+
     return (
         <div className="flex flex-col h-screen bg-gray-900 text-gray-200 font-sans">
             <header className="bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-lg">
@@ -316,6 +340,7 @@ const App: React.FC = () => {
                     onUpload={handleOpenGitHubModal}
                     onOpenModelConfig={() => setIsModelConfigModalOpen(true)}
                     onOpenUserProfile={() => setIsUserProfileOpen(true)}
+                    onGoToHub={() => setActiveView('hub')}
                 />
             </header>
             <main className="flex flex-1 overflow-hidden">

@@ -261,3 +261,9 @@ export const ClipboardDocumentListIcon = (props: React.SVGProps<SVGSVGElement>) 
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75c0-.231-.035-.454-.1-.664M6.75 7.5h1.5v.75h-1.5v-.75zm.75 3h.75v-.75h-.75v.75zM6 18.75c0-1.036.84-1.875 1.875-1.875h7.5c1.036 0 1.875.84 1.875 1.875v.75c0 1.035-.84 1.875-1.875 1.875h-7.5C6.84 21.375 6 20.535 6 19.5v-.75z" />
     </svg>
 );
+
+export const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a.75.75 0 011.06 0l8.955 8.955M3 10.5v.75a3 3 0 003 3h1.5v5.25a.75.75 0 00.75.75h3a.75.75 0 00.75-.75V15h1.5v5.25a.75.75 0 00.75.75h3a.75.75 0 00.75-.75V14.25a3 3 0 003-3v-.75" />
+    </svg>
+);
