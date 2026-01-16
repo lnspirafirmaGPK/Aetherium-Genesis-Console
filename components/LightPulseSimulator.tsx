@@ -44,11 +44,19 @@ export const LightPulseSimulator: React.FC<LightPulseSimulatorProps> = ({ state,
         let width = parent.clientWidth;
         let height = parent.clientHeight;
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-        context.scale(dpr, dpr);
+
+        const handleResize = () => {
+            width = parent.clientWidth;
+            height = parent.clientHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            context.scale(dpr, dpr);
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
 
         const startTime = Date.now();
 
@@ -75,17 +83,6 @@ export const LightPulseSimulator: React.FC<LightPulseSimulatorProps> = ({ state,
         canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
 
         const render = () => {
-            width = parent.clientWidth;
-            height = parent.clientHeight;
-            
-            if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-                canvas.width = width * dpr;
-                canvas.height = height * dpr;
-                canvas.style.width = `${width}px`;
-                canvas.style.height = `${height}px`;
-                context.scale(dpr, dpr);
-            }
-
             // Draw background (decay effect)
             context.fillStyle = `rgba(16, 23, 42, ${1 - config.decay})`;
             context.fillRect(0, 0, width, height);
@@ -145,6 +142,7 @@ export const LightPulseSimulator: React.FC<LightPulseSimulatorProps> = ({ state,
             if (animationFrameId.current) {
                 cancelAnimationFrame(animationFrameId.current);
             }
+            window.removeEventListener('resize', handleResize);
             canvas.removeEventListener('mousedown', handleMouseDown);
             canvas.removeEventListener('touchstart', handleTouchStart);
         };
