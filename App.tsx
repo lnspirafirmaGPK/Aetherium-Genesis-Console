@@ -25,12 +25,21 @@ import { AetherBus } from './services/aetherBus';
 import { CloseIcon, CodeIcon, GitHubIcon, SpinnerIcon, CheckCircleIcon, GitBranchIcon, SparklesIcon } from './components/icons';
 import type { TranslationKey } from './localization';
 
+type AppTab = 'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric';
+type ViewFocus = 'editor' | 'panel';
+
+interface NavState {
+    tab: AppTab;
+    view: ViewFocus;
+    file: CodeFile | null;
+}
+
 const App: React.FC = () => {
     const [files, setFiles] = useState<CodeFile[]>(MOCK_FILE_SYSTEM);
     const [selectedFile, setSelectedFile] = useState<CodeFile | null>(files.find(f => f.path === 'src/api/client.ts') || files[0] || null);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [highlightedNode, setHighlightedNode] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric'>('economicFabric');
+    const [activeTab, setActiveTab] = useState<AppTab>('graph'); // Default to graph
     const [staticTasks, setStaticTasks] = useState<RefactoringTask[]>([]);
     const [dynamicTasks, setDynamicTasks] = useState<RefactoringTask[]>([]);
     const { t } = useLocalization();
@@ -38,8 +47,8 @@ const App: React.FC = () => {
     const [completedTasks, setCompletedTasks] = useState<string[]>([]);
     const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
     
-    // State for the main view
-    const [activeView, setActiveView] = useState<'hub' | 'ide'>('hub');
+    // State for the main view - now defaults to 'ide'
+    const [activeView, setActiveView] = useState<'hub' | 'ide'>('ide');
     
     // State for the Core Monitor
     const [lightPulseState, setLightPulseState] = useState<LightPulseState>('IDLE');
@@ -49,7 +58,7 @@ const App: React.FC = () => {
     const [isGenesisModeActive, setIsGenesisModeActive] = useState(false);
     
     // State for focused view
-    const [focusedView, setFocusedView] = useState<'editor' | 'panel'>('editor');
+    const [focusedView, setFocusedView] = useState<ViewFocus>('editor');
     const [impactAnalysis, setImpactAnalysis] = useState<{ source: string[], affected: string[] } | null>(null);
     
     // State for GitHub modal
@@ -76,10 +85,54 @@ const App: React.FC = () => {
     
     // State for Notifications
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    
+    // State for Navigation History
+    const [navHistory, setNavHistory] = useState<NavState[]>([]);
+
+    const pushToHistory = useCallback(() => {
+        setNavHistory(prev => [...prev, { tab: activeTab, view: focusedView, file: selectedFile }]);
+    }, [activeTab, focusedView, selectedFile]);
+
+    const handleGoBack = () => {
+        if (navHistory.length === 0) return;
+
+        const lastState = navHistory[navHistory.length - 1];
+        
+        setActiveTab(lastState.tab);
+        setFocusedView(lastState.view);
+        setSelectedFile(lastState.file);
+
+        setNavHistory(prev => prev.slice(0, prev.length - 1));
+    };
 
     useEffect(() => {
         const loggedInEmail = sessionStorage.getItem('loggedInUserEmail');
-        setCurrentUserEmail(loggedInEmail || ARCHITECT_EMAIL); // Fallback to architect for dev
+        setCurrentUserEmail(loggedInEmail || ARCHITECT_EMAIL); 
+
+        const initialModule = sessionStorage.getItem('initialModule');
+        if (initialModule) {
+            const moduleMap: { [key: string]: AppTab } = {
+                'firma-ide': 'graph',
+                'ai-core': 'agent',
+                'image-genesis': 'genesis',
+                'image-analysis': 'analysis',
+                'data-fabric': 'fabric',
+                'economic-fabric': 'economicFabric',
+                'aetherbus': 'aether',
+                'aether-canvas': 'aether',
+            };
+            const targetTab = moduleMap[initialModule];
+            if (targetTab) {
+                setActiveTab(targetTab);
+                setFocusedView('panel');
+            }
+            if (initialModule === 'aether-canvas') {
+                setIsGenesisModeActive(true);
+            }
+            if (initialModule === 'settings') {
+                setIsModelConfigModalOpen(true);
+            }
+        }
     }, []);
 
     const addNotification = useCallback((title: TranslationKey, message: TranslationKey, type: 'success' | 'error' | 'info', data?: string) => {
@@ -184,7 +237,6 @@ const App: React.FC = () => {
             setCompletedTasks(prev => [...new Set([...prev, completedTaskId])]);
             setIsRefactoring(false);
             
-            // Auto-select a relevant new file after refactoring
             let fileToSelect: CodeFile | null = null;
             if (completedTaskId === 'CIRCULAR_DEP_AUTH_CLIENT') {
                  fileToSelect = newFiles.find(f => f.path === 'src/services/tokenProvider.ts');
@@ -206,7 +258,7 @@ const App: React.FC = () => {
             setActiveTab('graph');
             setFocusedView('panel');
             
-            setTimeout(() => setImpactAnalysis(null), 5000); // Simulation lasts 5 seconds
+            setTimeout(() => setImpactAnalysis(null), 5000);
         };
         
         const handleWisdomStart = () => !isDevMode && setLightPulseState('THINKING');
@@ -237,6 +289,8 @@ const App: React.FC = () => {
     };
     
     const handleSelectFile = (file: CodeFile) => {
+        if (file.path === selectedFile?.path) return;
+        pushToHistory();
         setSelectedFile(file);
         setHighlightedNode(file.path);
         AetherBus.getInstance().publish('FIRMA_NODE_SELECTED', file);
@@ -245,7 +299,9 @@ const App: React.FC = () => {
         setTimeout(() => setHighlightedNode(null), 1500);
     };
 
-    const handleFocusPanel = (tab: typeof activeTab) => {
+    const handleFocusPanel = (tab: AppTab) => {
+        if (tab === activeTab && focusedView === 'panel') return;
+        pushToHistory();
         setActiveTab(tab);
         setFocusedView('panel');
     };
@@ -279,20 +335,8 @@ const App: React.FC = () => {
         }, 2000);
     };
     
-    const handleNavigate = (view: 'hub' | 'ide', tab?: (typeof activeTab) | 'profile') => {
-        setActiveView(view);
-
-        if (view === 'ide') {
-            if (tab === 'profile') {
-                setIsUserProfileOpen(true);
-            } else if (tab) {
-                setActiveTab(tab);
-                setFocusedView('panel');
-            } else {
-                // Default to editor view if no specific tab is requested
-                setFocusedView('editor');
-            }
-        }
+    const handleGoToHub = () => {
+        window.location.href = '/';
     };
 
     const graphData = useMemo(() => {
@@ -316,7 +360,7 @@ const App: React.FC = () => {
     const activeState = isDevMode ? manualState : lightPulseState;
     const paramsOverride = isDevMode ? devParams : undefined;
     
-    const TAB_TITLE_KEYS: Record<typeof activeTab, TranslationKey> = {
+    const TAB_TITLE_KEYS: Record<AppTab, TranslationKey> = {
         genesis: 'imageGenesis',
         analysis: 'imageAnalysis',
         chat: 'chatbot',
@@ -326,9 +370,13 @@ const App: React.FC = () => {
         agent: 'aiAgent',
         graph: 'dependencyGraph',
     };
-
+    
     if (activeView === 'hub') {
-        return <HubView userEmail={currentUserEmail} onNavigate={handleNavigate} />;
+        // This view is now handled by index.html, but kept for potential future use.
+        return <HubView userEmail={currentUserEmail} onNavigate={(view, tab) => {
+            setActiveView(view);
+            if(tab && tab !== 'profile' && tab !== 'ide') setActiveTab(tab);
+        }} />;
     }
 
     return (
@@ -340,7 +388,9 @@ const App: React.FC = () => {
                     onUpload={handleOpenGitHubModal}
                     onOpenModelConfig={() => setIsModelConfigModalOpen(true)}
                     onOpenUserProfile={() => setIsUserProfileOpen(true)}
-                    onGoToHub={() => setActiveView('hub')}
+                    onGoToHub={handleGoToHub}
+                    onGoBack={handleGoBack}
+                    canGoBack={navHistory.length > 0}
                 />
             </header>
             <main className="flex flex-1 overflow-hidden">
@@ -361,7 +411,10 @@ const App: React.FC = () => {
                     {focusedView === 'panel' && (
                         <div className="p-2 border-b border-gray-700 flex items-center flex-shrink-0">
                             <button 
-                                onClick={() => setFocusedView('editor')} 
+                                onClick={() => {
+                                    pushToHistory();
+                                    setFocusedView('editor');
+                                }} 
                                 className="flex items-center p-2 text-sm rounded-md text-gray-300 hover:bg-gray-700 transition-colors"
                                 title={t('backToEditor')}
                             >
@@ -373,7 +426,7 @@ const App: React.FC = () => {
                     )}
                     
                     {focusedView === 'editor' && (
-                        <div className="grid grid-cols-8 border-b border-gray-700 flex-shrink-0">
+                         <div className="grid grid-cols-4 lg:grid-cols-8 border-b border-gray-700 flex-shrink-0">
                             <button onClick={() => handleFocusPanel('genesis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'genesis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageGenesis')}</button>
                             <button onClick={() => handleFocusPanel('analysis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'analysis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageAnalysis')}</button>
                             <button onClick={() => handleFocusPanel('chat')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'chat' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('chatbot')}</button>

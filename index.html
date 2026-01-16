@@ -1,507 +1,397 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aetherium Genesis - Celestial Sky</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Aetherium Genesis Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Basic Setup */
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #020111;
-            font-family: 'Poppins', 'Noto Sans Thai', 'Exo 2', sans-serif;
-            color: white;
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
         }
 
-        /* Container for stars */
-        .sky-container {
-            position: absolute;
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        }
+
+        .stars {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, #020111 0%, #191d3a 100%);
-            z-index: 1;
-            transition: opacity 0.5s ease-out;
+            pointer-events: none;
         }
 
         .star {
             position: absolute;
-            background-color: white;
+            background: white;
             border-radius: 50%;
-            opacity: 0.8;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-            animation: twinkle var(--duration) ease-in-out infinite;
+            animation: twinkle 3s infinite;
         }
 
         @keyframes twinkle {
-            0% { opacity: 0.2; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-            100% { opacity: 0.2; transform: scale(0.8); }
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
 
-        /* Initial Centered Content */
-        .content {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-            text-align: center;
-            padding: 0 20px;
-            text-shadow: 0 0 20px rgba(255,255,255,0.5);
-            transition: opacity 0.5s ease-out;
-            cursor: pointer;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .content h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            font-weight: 400;
-            line-height: 1.3;
-        }
-        
-        .content p {
-            font-size: 1.2rem;
-            color: #ccc;
-            font-weight: 300;
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
         }
 
-        /* Login Container */
-        .login-container {
-            position: absolute;
-            inset: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.5);
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            opacity: 0;
-            transition: opacity 0.5s ease-in;
-            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s ease;
         }
 
-        .login-box {
-            background: rgba(16, 23, 42, 0.8);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 12px;
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 0 40px rgba(56, 189, 248, 0.1);
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateY(-5px);
         }
 
-        .login-box h2 {
-            font-size: 1.8rem;
-            font-weight: 500;
-            color: #e0f2fe;
-            margin: 0 0 0.5rem;
-        }
-
-        .login-box > p {
-            color: #94a3b8;
-            margin-bottom: 2rem;
-        }
-        
-        .google-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .google-btn:hover {
-            background-color: #334155;
-        }
-
-        .google-btn svg {
-            width: 24px;
-            height: 24px;
-            margin-right: 12px;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: #475569;
-            margin: 1.5rem 0;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #334155;
-        }
-        .divider:not(:empty)::before { margin-right: .5em; }
-        .divider:not(:empty)::after { margin-left: .5em; }
-        
-        .login-box form { display: flex; flex-direction: column; gap: 1rem; }
-
-        .login-box input {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-         .login-box input:focus {
-            outline: none;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.4);
-         }
-
-        .login-btn {
-            padding: 0.75rem;
-            background-color: #0ea5e9;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .login-btn:hover { background-color: #0284c7; }
-
-        .sub-links { font-size: 0.9rem; color: #94a3b8; margin-top: 1.5rem; display: flex; justify-content: space-between; }
-        .sub-links a { color: #0ea5e9; text-decoration: none; }
-        .sub-links a:hover { text-decoration: underline; }
-
-
-        @media (max-width: 768px) {
-            .content h1 { font-size: 2.2rem; }
-            .content p { font-size: 1rem; }
-            .login-box { padding: 2rem; }
-        }
-        
-        /* Account Picker Modal */
-        .account-picker-container {
-            position: fixed;
-            inset: 0;
-            z-index: 25;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        
-        .account-picker-box {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-        }
-
-        .account-picker-header {
-            text-align: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid #334155;
-        }
-        .account-picker-header h2 { margin: 0; font-size: 1.5rem; color: #e0f2fe; }
-        .account-picker-header p { margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.9rem; }
-
-        .account-list { list-style: none; padding: 0.5rem; margin: 0; }
-        .account-list li { display: flex; align-items: center; padding: 0.75rem; cursor: pointer; transition: background-color 0.2s; border-radius: 8px; }
-        .account-list li:hover { background-color: rgba(56, 189, 248, 0.1); }
-        .account-list svg { width: 2.5rem; height: 2.5rem; margin-right: 1rem; color: #94a3b8; background: #334155; border-radius: 50%; padding: 0.5rem; }
-        .account-list li div { display: flex; flex-direction: column; }
-        .account-list li strong { font-weight: 500; color: #e2e8f0; }
-        .account-list li span { font-size: 0.9rem; color: #94a3b8; }
-
-        /* Privacy Modal */
-        .privacy-modal-container {
-            position: fixed;
-            inset: 0;
-            z-index: 30;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        
-        .privacy-modal-box {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 1.5rem 2rem;
-            width: 100%;
-            max-width: 550px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-        }
-        
-        .privacy-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .module-icon {
+            font-size: 3rem;
             margin-bottom: 1rem;
         }
-        .privacy-modal-header h2 { margin: 0; font-size: 1.5rem; color: #e0f2fe; }
-        .privacy-modal-header button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.5rem; padding: 0.5rem; }
-        
-        .privacy-modal-content { color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; }
-        .privacy-modal-content strong { color: #e0f2fe; }
-        .privacy-modal-content ul { padding-left: 20px; margin: 1rem 0; }
-        .privacy-modal-content li { margin-bottom: 0.5rem; }
 
-        .hidden { display: none !important; }
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
 
-        #root { display: none; }
+        #account-picker {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        #hub-view {
+            display: none;
+            padding: 2rem;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+            overflow-y: auto;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(139, 92, 246, 0.5);
+        }
     </style>
-    <script src="https://unpkg.com/acorn@8.11.3/dist/acorn.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.2.3/client",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
-  }
-}
-</script>
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.2.3/client",
+        "react": "https://esm.sh/react@^19.2.3",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "react/": "https://esm.sh/react@^19.2.3/"
+      }
+    }
+    </script>
 </head>
 <body>
+    <div class="stars" id="stars"></div>
 
-    <div class="sky-container" id="sky-container"></div>
-    <div class="content" id="content">
-        <h1 id="welcome-h1">You are the solitary star of creation,<br>my one and only star.</h1>
-        <p id="welcome-p">Welcome to a night full of stars.</p>
-    </div>
-    
-    <div class="login-container" id="login-container">
-        <div class="login-box">
-            <h2 id="login-h2">Aetherium Genesis Access</h2>
-            <p id="login-p">Authenticate to interface with the core.</p>
-            <button class="google-btn" type="button" aria-label="Sign in with Google">
-                 <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path><path d="M1 1h22v22H1z" fill="none"></path></svg>
-                 <span id="google-btn-text">Sign in with Google</span>
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="glass-card fade-in p-12 text-center max-w-md">
+            <h1 class="text-5xl font-bold text-white mb-4">Aetherium</h1>
+            <p class="text-xl text-purple-300 mb-8">Genesis Console</p>
+            <div class="mb-8">
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-purple-500 to-blue-500 rounded-full pulse-glow flex items-center justify-center">
+                    <span class="text-4xl">✦</span>
+                </div>
+            </div>
+            <p class="text-gray-300 mb-8">เข้าสู่โถงกลางแห่งการเชื่อมต่อ</p>
+             <button onclick="demoLogin()" class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors w-full">
+                เข้าสู่ระบบ (Demo)
             </button>
-            <div class="divider" id="login-divider">or</div>
-            <form id="auth-form">
-                <input id="email-input" type="email" placeholder="Email Address" required>
-                <input id="password-input" type="password" placeholder="Password" required>
-                <p id="error-message" style="color: #f87171; height: 1em; margin: -0.5rem 0; font-size: 0.9rem; text-align: left;"></p>
-                <button id="auth-btn" type="submit" class="login-btn">Authenticate</button>
-            </form>
-            <div class="sub-links">
-                <span id="no-account-span">No account? <a href="#">Create one</a></span>
-                <a href="#" id="privacy-link">Data & Privacy</a>
+        </div>
+    </div>
+
+    <!-- Account Picker -->
+    <div id="account-picker">
+        <div class="glass-card fade-in p-12 text-center max-w-2xl">
+            <h2 class="text-3xl font-bold text-white mb-4">หน้าต่างแห่งการเลือกสรร</h2>
+            <p class="text-gray-300 mb-8">กรุณาเลือกบทบาทของคุณ</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-8 cursor-pointer hover:scale-105 transition-transform" onclick="selectRole('architect')">
+                    <div class="text-6xl mb-4">🏛️</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">สถาปนิก</h3>
+                    <p class="text-sm text-gray-300">เข้าถึงระบบทั้งหมด รวมถึง Economic Fabric และ Architectural Royalty</p>
+                </div>
+                <div class="glass-card p-8 cursor-pointer hover:scale-105 transition-transform" onclick="selectRole('user')">
+                    <div class="text-6xl mb-4">👤</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">ผู้ใช้ทั่วไป</h3>
+                    <p class="text-sm text-gray-300">เข้าถึงฟังก์ชันพื้นฐานและโมดูลสร้างสรรค์</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="account-picker-container hidden" id="account-picker-container">
-        <div class="account-picker-box">
-            <div class="account-picker-header">
-                <h2 id="account-picker-h2">Choose an account</h2>
-                <p id="account-picker-p">to continue to Aetherium Genesis</p>
-            </div>
-            <ul class="account-list" id="account-list">
-                <li data-email="lnspirafirma@gmail.com">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <div>
-                        <strong id="architect-name">Architect</strong>
-                        <span>lnspirafirma@gmail.com</span>
+    <!-- Hub View (Nexus Hub) -->
+    <div id="hub-view">
+        <div class="fade-in">
+            <!-- Profile Header -->
+            <div class="glass-card p-6 mb-6">
+                <div class="profile-section">
+                    <img id="profile-pic" class="profile-pic" src="" alt="Profile">
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold text-white" id="profile-name"></h2>
+                        <p class="text-gray-300" id="profile-email"></p>
+                        <p class="text-purple-400 text-sm" id="profile-role"></p>
                     </div>
-                </li>
-                <li data-email="general.user@example.com">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <div>
-                        <strong id="general-user-name">General User</strong>
-                        <span>general.user@example.com</span>
-                    </div>
-                </li>
-            </ul>
+                    <button onclick="logout()" class="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors">
+                        ออกจากระบบ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nexus Hub Title -->
+            <div class="text-center mb-8">
+                <h1 class="text-5xl font-bold text-white mb-2">โถงกลางแห่งการเชื่อมต่อ</h1>
+                <p class="text-xl text-purple-300">Nexus Hub - ศูนย์กลางการนำทาง</p>
+            </div>
+
+            <!-- Module Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                <!-- Firma IDE -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('firma-ide')">
+                    <div class="module-icon">💻</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Firma IDE</h3>
+                    <p class="text-gray-300 text-sm mb-4">สภาพแวดล้อมการพัฒนาแบบบูรณาการ</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• สารบบ Firma (File Explorer)</li>
+                        <li>• เอดิเตอร์โค้ด (Code Editor)</li>
+                        <li>• กราฟ Aetherium (Dependency Graph)</li>
+                    </ul>
+                </div>
+
+                <!-- PRGX Sentry & Mechanic -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('ai-core')">
+                    <div class="module-icon">🤖</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">AI Core</h3>
+                    <p class="text-gray-300 text-sm mb-4">ระบบวิเคราะห์และแก้ไขโค้ดอัจฉริยะ</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• PRGX Sentry (Code Analysis)</li>
+                        <li>• PRGX Mechanic (Refactoring)</li>
+                        <li>• Wisdom Engine (AI Insights)</li>
+                    </ul>
+                </div>
+
+                <!-- Image Genesis -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('image-genesis')">
+                    <div class="module-icon">🎨</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Image Genesis</h3>
+                    <p class="text-gray-300 text-sm mb-4">การสร้างภาพด้วย AI</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• สร้างภาพจากข้อความ</li>
+                        <li>• Gemini Pro Image Preview</li>
+                        <li>• การจัดการ API Keys</li>
+                    </ul>
+                </div>
+
+                <!-- Image Analysis -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('image-analysis')">
+                    <div class="module-icon">🔍</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Image Analysis</h3>
+                    <p class="text-gray-300 text-sm mb-4">วิเคราะห์ภาพด้วย AI</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• อัปโหลดและวิเคราะห์ภาพ</li>
+                        <li>• ตอบคำถามเกี่ยวกับภาพ</li>
+                        <li>• Gemini Pro Vision</li>
+                    </ul>
+                </div>
+
+                <!-- Aether Canvas (โปรโตคอลเจเนซิส) -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('aether-canvas')">
+                    <div class="module-icon">✨</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Aether Canvas</h3>
+                    <p class="text-gray-300 text-sm mb-4">โปรโตคอลเจเนซิส - การสร้างสรรค์ผ่านเสียง</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Gemini Live API (Voice)</li>
+                        <li>• การสร้างภาพด้วยเสียง</li>
+                        <li>• Particle Animation (5,000 ดวงดาว)</li>
+                    </ul>
+                </div>
+
+                <!-- Data Fabric -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('data-fabric')">
+                    <div class="module-icon">🌐</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Data Fabric</h3>
+                    <p class="text-gray-300 text-sm mb-4">โครงสร้างข้อมูลและ Governance</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Data Pipeline (Bronze/Silver/Gold)</li>
+                        <li>• Data Governance</li>
+                        <li>• การควบคุมสิทธิ์ตามบทบาท</li>
+                    </ul>
+                </div>
+
+                <!-- Economic Fabric (สถาปนิกเท่านั้น) -->
+                <div id="economic-module" class="glass-card p-6 cursor-pointer" onclick="openModule('economic-fabric')" style="display: none;">
+                    <div class="module-icon">💰</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Economic Fabric</h3>
+                    <p class="text-gray-300 text-sm mb-4">โครงข่ายเศรษฐกิจ (สถาปนิกเท่านั้น)</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Tier-based Economy</li>
+                        <li>• Dynamic Pricing</li>
+                        <li>• Architectural Royalty</li>
+                    </ul>
+                </div>
+
+                <!-- AetherBus Monitor -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('aetherbus')">
+                    <div class="module-icon">⚡</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">AetherBus Monitor</h3>
+                    <p class="text-gray-300 text-sm mb-4">ระบบสื่อสารภายใน</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Intent Vector Tracking</li>
+                        <li>• Light Pulse Simulator</li>
+                        <li>• AI Core Status (IDLE/THINKING/EXECUTING)</li>
+                    </ul>
+                </div>
+
+                <!-- System Settings -->
+                <div class="glass-card p-6 cursor-pointer" onclick="openModule('settings')">
+                    <div class="module-icon">⚙️</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">การตั้งค่าระบบ</h3>
+                    <p class="text-gray-300 text-sm mb-4">จัดการการตั้งค่าและการกำหนดค่า</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• API Keys Management</li>
+                        <li>• Theme Preferences</li>
+                        <li>• System Configuration</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="privacy-modal-container hidden" id="privacy-modal-container">
-        <div class="privacy-modal-box">
-            <div class="privacy-modal-header">
-                <h2 id="privacy-h2">Data Privacy & Handling</h2>
-                <button type="button" id="privacy-modal-close" aria-label="Close">&times;</button>
+    <!-- Module Modal -->
+    <div id="module-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" onclick="closeModal(event)">
+        <div class="glass-card p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modal-title" class="text-3xl font-bold text-white"></h2>
+                <button onclick="closeModal()" class="text-white hover:text-purple-400 text-3xl">&times;</button>
             </div>
-            <div class="privacy-modal-content">
-                <p id="privacy-p1"><strong>Your privacy is paramount.</strong> We are committed to transparency and minimizing data collection.</p>
-                <ul>
-                    <li id="privacy-li1"><strong>What We Store:</strong> The only personal information we store on our servers is the authentication data required for you to log in automatically on future visits.</li>
-                    <li id="privacy-li2"><strong>What We Don't Store:</strong> All user-generated content, including code analysis, images, chats, and other creations, is <strong>never</strong> stored on our servers.</li>
-                </ul>
-                <p id="privacy-p2"><strong>You have full control over your creations.</strong> Data can be saved via explicit confirmation to:</p>
-                 <ul>
-                    <li id="privacy-li3">Your personal Google Drive account.</li>
-                    <li id="privacy-li4">Your local device storage.</li>
-                </ul>
-                <p id="privacy-p3">If you do not explicitly save your work, it will be stored temporarily for your current session only. This data will be <strong>permanently lost</strong> if the application is closed, restarted, or uninstalled.</p>
-            </div>
+            <div id="modal-content" class="text-gray-300"></div>
         </div>
     </div>
-
-    <div id="root"></div>
 
     <script>
+        let userData = null;
+        let userRole = null;
+        let appLaunched = false;
+
+        // Create stars background
         function createStars() {
-            const sky = document.getElementById('sky-container');
-            if (!sky) return;
-            const starCount = 150;
-
-            for (let i = 0; i < starCount; i++) {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 200; i++) {
                 const star = document.createElement('div');
-                star.classList.add('star');
-                const x = Math.random() * 100;
-                const y = Math.random() * 100;
-                const size = Math.random() * 2 + 1;
-                const duration = Math.random() * 4 + 2;
-
-                star.style.left = `${x}%`;
-                star.style.top = `${y}%`;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                star.style.setProperty('--duration', `${duration}s`);
-                sky.appendChild(star);
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
             }
         }
 
-        function setInitialLanguage() {
-            const lang = navigator.language.toLowerCase();
-            if (!lang.startsWith('th')) {
-                return; // Default is English
+        // Select role (architect or user)
+        function selectRole(role) {
+            userRole = role;
+
+            if (role === 'architect') {
+                userData = {
+                    name: 'Dr. Architect',
+                    email: 'lnspirafirma@gmail.com',
+                    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2E4NWVmNyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgM3MtMS4zNCAzLTMgMy0zLTEuMzQtMy0zIDEuMzQtMyAzLTN6bTAgMTRjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'
+                };
+            } else {
+                 userData = {
+                    name: 'General User',
+                    email: 'general.user@example.com',
+                    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzRiYTVlYSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgM3MtMS4zNCAzLTMgMy0zLTEuMzQtMy0zIDEuMzQtMyAzLTN6bTAgMTRjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+'
+                };
             }
             
-            document.documentElement.lang = 'th';
+            document.getElementById('profile-pic').src = userData.picture;
+            document.getElementById('profile-name').textContent = userData.name;
+            document.getElementById('profile-email').textContent = userData.email;
+            document.getElementById('profile-role').textContent = role === 'architect' ? '🏛️ สถาปนิก' : '👤 ผู้ใช้ทั่วไป';
 
-            const thTranslations = {
-                welcomeH1: "คุณคือดาวดวงเดียวที่รังสรรค์<br>คุณคือดาวดวงเดียวของฉัน",
-                welcomeP: "ยินดีต้อนรับสู่ค่ำคืนที่เต็มไปด้วยดวงดาว",
-                loginH2: "การเข้าถึง Aetherium Genesis",
-                loginP: "ยืนยันตัวตนเพื่อเชื่อมต่อกับแกนกลาง",
-                googleBtn: "ลงชื่อเข้าใช้ด้วย Google",
-                loginDivider: "หรือ",
-                emailPlaceholder: "ที่อยู่อีเมล",
-                passwordPlaceholder: "รหัสผ่าน",
-                authBtn: "ยืนยันตัวตน",
-                noAccountSpan: 'ไม่มีบัญชี? <a href="#" class="text-cyan-400 no-underline hover:underline">สร้างบัญชี</a>',
-                privacyLink: "ข้อมูลและความเป็นส่วนตัว",
-                privacyH2: "ความเป็นส่วนตัวและการจัดการข้อมูล",
-                privacyP1: "<strong>ความเป็นส่วนตัวของคุณสำคัญที่สุด</strong> เรามุ่งมั่นในความโปร่งใสและลดการเก็บข้อมูล",
-                privacyLi1: "<strong>สิ่งที่เราเก็บ:</strong> ข้อมูลส่วนบุคคลเดียวที่เราเก็บในเซิร์ฟเวอร์ของเราคือข้อมูลการยืนยันตัวตนที่จำเป็นสำหรับคุณในการเข้าสู่ระบบโดยอัตโนมัติในการเยี่ยมชมครั้งต่อไป",
-                privacyLi2: "<strong>สิ่งที่เราไม่เก็บ:</strong> เนื้อหาที่ผู้ใช้สร้างทั้งหมด รวมถึงการวิเคราะห์โค้ด, รูปภาพ, การแชท, และผลงานสร้างสรรค์อื่นๆ <strong>จะไม่ถูกเก็บ</strong>ไว้ในเซิร์ฟเวอร์ของเรา",
-                privacyP2: "<strong>คุณควบคุมผลงานของคุณได้อย่างเต็มที่</strong> ข้อมูลสามารถบันทึกได้ผ่านการยืนยันอย่างชัดเจนไปยัง:",
-                privacyLi3: "บัญชี Google Drive ส่วนตัวของคุณ",
-                privacyLi4: "ที่เก็บข้อมูลในอุปกรณ์ของคุณ",
-                privacyP3: "หากคุณไม่บันทึกงานของคุณอย่างชัดเจน งานนั้นจะถูกเก็บไว้ชั่วคราวสำหรับเซสชันปัจจุบันของคุณเท่านั้น ข้อมูลนี้จะ<strong>สูญหายอย่างถาวร</strong>หากแอปพลิเคชันถูกปิด, รีสตาร์ท, หรือถอนการติดตั้ง",
-                accountPickerH2: "เลือกบัญชี",
-                accountPickerP: "เพื่อดำเนินการต่อใน Aetherium Genesis",
-                architectName: "สถาปนิก",
-                generalUserName: "ผู้ใช้ทั่วไป",
-            };
-
-            const t = thTranslations;
-            document.getElementById('welcome-h1').innerHTML = t.welcomeH1;
-            document.getElementById('welcome-p').textContent = t.welcomeP;
-            document.getElementById('login-h2').textContent = t.loginH2;
-            document.getElementById('login-p').textContent = t.loginP;
-            document.getElementById('google-btn-text').textContent = t.googleBtn;
-            document.getElementById('login-divider').textContent = t.loginDivider;
-            document.getElementById('email-input').placeholder = t.emailPlaceholder;
-            document.getElementById('password-input').placeholder = t.passwordPlaceholder;
-            document.getElementById('auth-btn').textContent = t.authBtn;
-            document.getElementById('no-account-span').innerHTML = t.noAccountSpan;
-            document.getElementById('privacy-link').textContent = t.privacyLink;
-            document.getElementById('privacy-h2').textContent = t.privacyH2;
-            document.getElementById('privacy-p1').innerHTML = t.privacyP1;
-            document.getElementById('privacy-li1').innerHTML = t.privacyLi1;
-            document.getElementById('privacy-li2').innerHTML = t.privacyLi2;
-            document.getElementById('privacy-p2').innerHTML = t.privacyP2;
-            document.getElementById('privacy-li3').textContent = t.privacyLi3;
-            document.getElementById('privacy-li4').textContent = t.privacyLi4;
-            document.getElementById('privacy-p3').innerHTML = t.privacyP3;
-            document.getElementById('account-picker-h2').textContent = t.accountPickerH2;
-            document.getElementById('account-picker-p').textContent = t.accountPickerP;
-            document.getElementById('architect-name').textContent = t.architectName;
-            document.getElementById('general-user-name').textContent = t.generalUserName;
-        }
-
-        setInitialLanguage();
-        createStars();
-
-        const content = document.getElementById('content');
-        const loginContainer = document.getElementById('login-container');
-        const root = document.getElementById('root');
-        const privacyLink = document.getElementById('privacy-link');
-        const privacyModalContainer = document.getElementById('privacy-modal-container');
-        const privacyModalClose = document.getElementById('privacy-modal-close');
-        const accountPickerContainer = document.getElementById('account-picker-container');
-        const accountList = document.getElementById('account-list');
-        let interactionComplete = false;
-
-        function showLogin() {
-            if (interactionComplete) return;
-            interactionComplete = true;
-            if (content) {
-                content.style.opacity = '0';
-                content.style.pointerEvents = 'none';
+            if (role === 'architect') {
+                document.getElementById('economic-module').style.display = 'block';
+            } else {
+                document.getElementById('economic-module').style.display = 'none';
             }
-            if (loginContainer) {
-                loginContainer.style.display = 'flex';
-                setTimeout(() => { loginContainer.style.opacity = '1'; }, 10);
-            }
-        }
 
-        function launchApp(email) {
-            sessionStorage.setItem('loggedInUserEmail', email);
+            document.getElementById('account-picker').style.display = 'none';
+            document.getElementById('hub-view').style.display = 'block';
+        }
+        
+        function launchApp(moduleName) {
+            if (appLaunched) {
+                alert("App is already running. Please reload to return to the hub and launch another module.");
+                return;
+            }
+            appLaunched = true;
+
+            sessionStorage.setItem('loggedInUserEmail', userData.email);
+            sessionStorage.setItem('userRole', userRole);
+            sessionStorage.setItem('initialModule', moduleName);
+
             document.body.style.transition = 'opacity 0.5s ease-out';
             document.body.style.opacity = '0';
 
             setTimeout(() => {
-                const sky = document.getElementById('sky-container');
-                if (sky) sky.remove();
-                if (content) content.remove();
-                if (loginContainer) loginContainer.remove();
-                if (privacyModalContainer) privacyModalContainer.remove();
-                if (accountPickerContainer) accountPickerContainer.remove();
-                
-                if (root) root.style.display = 'block';
-                document.body.style.background = '#0f172a'; // Match app background
+                document.body.innerHTML = '';
+                const root = document.createElement('div');
+                root.id = 'root';
+                document.body.appendChild(root);
+
+                document.body.style.background = '#0f172a';
+                document.body.style.overflow = 'hidden';
                 document.body.style.opacity = '1';
                 
                 const script = document.createElement('script');
@@ -511,107 +401,211 @@
             }, 500);
         }
 
-        function showPrivacyModal() {
-            if (privacyModalContainer) {
-                privacyModalContainer.classList.remove('hidden');
-                privacyModalContainer.style.display = 'flex';
-                setTimeout(() => { privacyModalContainer.style.opacity = '1'; }, 10);
-            }
-        }
+        // Open module
+        function openModule(moduleName) {
+            const modal = document.getElementById('module-modal');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
 
-        function hidePrivacyModal() {
-            if (privacyModalContainer) {
-                privacyModalContainer.style.opacity = '0';
-                setTimeout(() => { 
-                    privacyModalContainer.classList.add('hidden');
-                    privacyModalContainer.style.display = 'none';
-                }, 300);
-            }
-        }
-        
-        function showAccountPicker() {
-            if (accountPickerContainer) {
-                accountPickerContainer.classList.remove('hidden');
-                accountPickerContainer.style.display = 'flex';
-                setTimeout(() => { accountPickerContainer.style.opacity = '1'; }, 10);
-            }
-        }
-
-        function hideAccountPicker() {
-            if (accountPickerContainer) {
-                accountPickerContainer.style.opacity = '0';
-                setTimeout(() => { 
-                    accountPickerContainer.classList.add('hidden');
-                    accountPickerContainer.style.display = 'none';
-                }, 300);
-            }
-        }
-
-        content.addEventListener('click', showLogin, { once: true });
-        content.addEventListener('touchstart', showLogin, { once: true });
-
-        // --- Login Logic ---
-        const authForm = document.getElementById('auth-form');
-        const emailInput = document.getElementById('email-input');
-        const passwordInput = document.getElementById('password-input');
-        const googleBtn = document.querySelector('.google-btn');
-        const errorMessage = document.getElementById('error-message');
-
-        const ARCHITECT_EMAIL = 'lnspirafirma@gmail.com';
-        const ARCHITECT_PASS = 'INSPIRAFIRMACnr5987c2307';
-
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            errorMessage.textContent = '';
-
-            if (email === ARCHITECT_EMAIL) {
-                if (password === ARCHITECT_PASS) {
-                    launchApp(email);
-                } else {
-                    errorMessage.textContent = document.documentElement.lang === 'th' ? 'ข้อมูลยืนยันตัวตนสำหรับสถาปนิกไม่ถูกต้อง' : 'Invalid credentials for Architect.';
+            const modules = {
+                'firma-ide': {
+                    title: 'Firma IDE',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">สภาพแวดล้อมการพัฒนาแบบบูรณาการ</h3>
+                        <div class="space-y-4">
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">📁 สารบบ Firma (File Explorer)</h4>
+                                <p>แสดงโครงสร้างไฟล์ทั้งหมด พร้อมตัวบ่งชี้ "ความร้อน" (Heat Score) และสัญลักษณ์แจ้งเตือนสำหรับไฟล์ที่เกี่ยวข้องกับ Code Smell</p>
+                            </div>
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">✏️ เอดิเตอร์โค้ด (Code Editor)</h4>
+                                <p>แสดงเนื้อหาของไฟล์ที่เลือก พร้อมไฮไลท์จุดที่น่าสนใจ เช่น โค้ดที่ไม่ได้ใช้งาน หรือการ import ที่เป็นส่วนหนึ่งของ Circular Dependency</p>
+                            </div>
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🌐 กราฟ Aetherium (Dependency Graph)</h4>
+                                <p>แสดงผลการพึ่งพิงระหว่างไฟล์ในรูปแบบของกราฟอนุภาค (d3.js บน Canvas) พร้อมการวิเคราะห์ผลกระทบ</p>
+                            </div>
+                        </div>
+                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('firma-ide')">
+                            เปิดใช้งาน
+                        </button>
+                    `
+                },
+                'ai-core': {
+                    title: 'AI Core & Protocols',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">ระบบวิเคราะห์และแก้ไขโค้ดอัจฉริยะ</h3>
+                        <div class="space-y-4">
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🛡️ PRGX Sentry (Analysis Engine)</h4>
+                                <p>วิเคราะห์โค้ดและตรวจจับปัญหาเชิงโครงสร้าง เช่น Dead Code, Circular Dependency, Code Smells</p>
+                            </div>
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🔧 PRGX Mechanic (Refactoring Engine)</h4>
+                                <p>สร้างและดำเนินการ "โปรโตคอลการแก้ไข" (Refactoring Tasks) อัตโนมัติ</p>
+                            </div>
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🧠 Wisdom Engine</h4>
+                                <p>เชื่อมต่อกับ Gemini Flash Preview และใช้ Google Search Grounding เพื่อดึงข้อมูลคำอธิบายเชิงลึก</p>
+                            </div>
+                        </div>
+                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('ai-core')">
+                            เริ่มการวิเคราะห์
+                        </button>
+                    `
+                },
+                'image-genesis': {
+                    title: 'Image Genesis',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">การสร้างภาพด้วย AI</h3>
+                        <div class="glass-card p-6 mb-4">
+                            <p class="mb-4">ใช้ Gemini Pro Image Preview เพื่อสร้างภาพจากคำสั่งข้อความ</p>
+                             <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('image-genesis')">
+                                🎨 เปิดโมดูลสร้างภาพ
+                            </button>
+                        </div>
+                        <div class="text-sm text-gray-400">
+                            <p>💡 ต้องการ API Key จาก Google AI Studio</p>
+                        </div>
+                    `
+                },
+                'image-analysis': {
+                    title: 'Image Analysis',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">วิเคราะห์ภาพด้วย AI</h3>
+                        <div class="glass-card p-6 mb-4">
+                            <p class="mb-4">อัปโหลดภาพและถามคำถามเกี่ยวกับภาพ</p>
+                            <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('image-analysis')">
+                                🔍 เปิดโมดูลวิเคราะห์ภาพ
+                            </button>
+                        </div>
+                    `
+                },
+                'aether-canvas': {
+                    title: 'Aether Canvas - โปรโตคอลเจเนซิส',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">การสร้างสรรค์ผ่านเสียง</h3>
+                        <div class="space-y-4">
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🎤 Gemini Live API</h4>
+                                <p>ถอดเสียงพูดแบบเรียลไทม์ด้วย gemini-2.5-flash-native-audio-preview</p>
+                            </div>
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🌟 Particle Animation</h4>
+                                <p>ระบบ "ถักทอ" ภาพจากดวงดาวกว่า 5,000 ดวง แสดงกระบวนการสร้างสรรค์แบบเรียลไทม์</p>
+                            </div>
+                        </div>
+                        <button class="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg w-full transition-colors" onclick="launchApp('aether-canvas')">
+                            เข้าสู่ Canvas
+                        </button>
+                    `
+                },
+                'data-fabric': {
+                    title: 'Data Fabric',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">โครงสร้างข้อมูลและ Governance</h3>
+                        <div class="space-y-4">
+                            <div class="glass-card p-4 bg-amber-900/20">
+                                <h4 class="text-xl font-bold mb-2">🥉 Bronze Zone</h4>
+                                <p>ข้อมูลดิบที่เพิ่งเข้าสู่ระบบ</p>
+                            </div>
+                            <div class="glass-card p-4 bg-gray-400/20">
+                                <h4 class="text-xl font-bold mb-2">🥈 Silver Zone</h4>
+                                <p>ข้อมูลที่ผ่านการทำความสะอาดและจัดรูปแบบ</p>
+                            </div>
+                            <div class="glass-card p-4 bg-yellow-600/20">
+                                <h4 class="text-xl font-bold mb-2">🥇 Gold Zone</h4>
+                                <p>ข้อมูลที่พร้อมใช้งาน ผ่านการควบคุมคุณภาพและ Governance</p>
+                            </div>
+                        </div>
+                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('data-fabric')">
+                            จัดการ Data Pipeline
+                        </button>
+                    `
+                },
+                'economic-fabric': {
+                    title: 'Economic Fabric',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">โครงข่ายเศรษฐกิจ (สถาปนิกเท่านั้น)</h3>
+                        <div class="space-y-4">
+                             <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">💎 Tier-based Economy</h4>
+                                <p>จำลองรูปแบบเศรษฐกิจแบบแบ่งชั้น</p>
+                            </div>
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">🏛️ Architectural Royalty</h4>
+                                <p>ระบบคำนวณและจ่ายเงิน "ค่าสถาปัตยกรรม" ให้แก่สถาปนิก</p>
+                            </div>
+                        </div>
+                        <button class="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg w-full transition-colors" onclick="launchApp('economic-fabric')">
+                            เปิดแดชบอร์ดเศรษฐกิจ
+                        </button>
+                    `
+                },
+                'aetherbus': {
+                    title: 'AetherBus Monitor',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">ระบบสื่อสารภายใน</h3>
+                        <div class="space-y-4">
+                            <div class="glass-card p-4">
+                                <h4 class="text-xl font-bold mb-2">💫 Light Pulse Simulator</h4>
+                                <p>แสดงสถานะการทำงานของระบบแบบ Real-time (IDLE/THINKING/EXECUTING)</p>
+                            </div>
+                        </div>
+                        <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('aetherbus')">
+                            เปิด Monitor
+                        </button>
+                    `
+                },
+                'settings': {
+                    title: 'การตั้งค่าระบบ',
+                    content: `
+                        <h3 class="text-2xl font-bold mb-4">จัดการการตั้งค่า</h3>
+                         <button class="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg w-full transition-colors" onclick="launchApp('settings')">
+                            เปิดการตั้งค่า
+                        </button>
+                    `
                 }
-            } else if (email && password) {
-                launchApp(email);
-            } else {
-                errorMessage.textContent = document.documentElement.lang === 'th' ? 'กรุณากรอกอีเมลและรหัสผ่าน' : 'Please enter email and password.';
-            }
-        });
+            };
 
-        googleBtn.addEventListener('click', showAccountPicker);
-        
-        if (accountList) {
-            accountList.querySelectorAll('li').forEach(item => {
-                item.addEventListener('click', () => {
-                    const email = item.getAttribute('data-email');
-                    if (email) {
-                        launchApp(email);
-                    }
-                });
-            });
-        }
-        
-        if (accountPickerContainer) {
-            accountPickerContainer.addEventListener('click', (e) => {
-                if (e.target === accountPickerContainer) {
-                    hideAccountPicker();
-                }
-            });
+            const moduleData = modules[moduleName];
+            if (moduleData) {
+                title.textContent = moduleData.title;
+                content.innerHTML = moduleData.content;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
         }
 
-        privacyLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showPrivacyModal();
-        });
-
-        privacyModalClose.addEventListener('click', hidePrivacyModal);
-        privacyModalContainer.addEventListener('click', (e) => {
-            if (e.target === privacyModalContainer) {
-                hidePrivacyModal();
+        // Close modal
+        function closeModal(event) {
+            if (!event || event.target.id === 'module-modal') {
+                const modal = document.getElementById('module-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
-        });
+        }
 
+        // Logout
+        function logout() {
+            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+                userData = null;
+                userRole = null;
+                sessionStorage.clear();
+                window.location.reload();
+            }
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            createStars();
+        };
+
+        // Demo login for testing
+        function demoLogin() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('account-picker').style.display = 'flex';
+        }
     </script>
 </body>
 </html>
