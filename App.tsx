@@ -7,7 +7,10 @@ import { LightPulseSimulator, STATE_CONFIG } from './components/LightPulseSimula
 import { Toolbar } from './components/Toolbar';
 import { AgentPanel } from './components/AgentPanel';
 import { ImageGenesis } from './components/ImageGenesis';
+import { ImageAnalysis } from './components/ImageAnalysis';
 import { Chatbot } from './components/Chatbot';
+import { DataFabricView } from './components/DataFabricView';
+import { AetherCanvas } from './components/AetherCanvas';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { ModelConfigModal } from './components/ModelConfigModal';
 import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig } from './types';
@@ -16,7 +19,7 @@ import { RefactoringEngine } from './services/refactoringEngine';
 import { MOCK_FILE_SYSTEM } from './constants';
 import { useLocalization } from './contexts/LocalizationContext';
 import { AetherBus } from './services/aetherBus';
-import { CloseIcon, CodeIcon, GitHubIcon, SpinnerIcon, CheckCircleIcon, GitBranchIcon } from './components/icons';
+import { CloseIcon, CodeIcon, GitHubIcon, SpinnerIcon, CheckCircleIcon, GitBranchIcon, SparklesIcon } from './components/icons';
 import type { TranslationKey } from './localization';
 
 const App: React.FC = () => {
@@ -24,7 +27,7 @@ const App: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<CodeFile | null>(files.find(f => f.path === 'src/api/client.ts') || files[0] || null);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [highlightedNode, setHighlightedNode] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'chat'>('genesis');
+    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric'>('genesis');
     const [tasks, setTasks] = useState<RefactoringTask[]>([]);
     const { t } = useLocalization();
     const [isRefactoring, setIsRefactoring] = useState(false);
@@ -35,6 +38,7 @@ const App: React.FC = () => {
     const [isDevMode, setIsDevMode] = useState(false);
     const [manualState, setManualState] = useState<LightPulseState>('IDLE');
     const [devParams, setDevParams] = useState<DevLightParams>({ ...STATE_CONFIG.IDLE });
+    const [isGenesisModeActive, setIsGenesisModeActive] = useState(false);
     
     // State for focused view
     const [focusedView, setFocusedView] = useState<'editor' | 'panel'>('editor');
@@ -231,7 +235,9 @@ const App: React.FC = () => {
     
     const TAB_TITLE_KEYS: Record<typeof activeTab, TranslationKey> = {
         genesis: 'imageGenesis',
+        analysis: 'imageAnalysis',
         chat: 'chatbot',
+        fabric: 'dataFabric',
         aether: 'aetherInterface',
         agent: 'aiAgent',
         graph: 'dependencyGraph',
@@ -264,7 +270,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Right Panel */}
-                <div className={`bg-gray-800 border-l border-gray-700 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${focusedView === 'panel' ? 'flex-1' : 'w-1/4 lg:w-1/5 flex-shrink-0'}`}>
+                <div className={`bg-gray-800 border-l border-gray-700 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${focusedView === 'panel' ? 'flex-1' : 'w-[30%] 2xl:w-1/4 flex-shrink-0'}`}>
                     {focusedView === 'panel' && (
                         <div className="p-2 border-b border-gray-700 flex items-center flex-shrink-0">
                             <button 
@@ -280,67 +286,84 @@ const App: React.FC = () => {
                     )}
                     
                     {focusedView === 'editor' && (
-                        <div className="flex border-b border-gray-700 flex-shrink-0">
-                            <button onClick={() => handleFocusPanel('genesis')} className={`flex-1 p-3 text-sm font-semibold transition-colors ${activeTab === 'genesis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageGenesis')}</button>
-                            <button onClick={() => handleFocusPanel('chat')} className={`flex-1 p-3 text-sm font-semibold transition-colors ${activeTab === 'chat' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('chatbot')}</button>
-                            <button onClick={() => handleFocusPanel('aether')} className={`flex-1 p-3 text-sm font-semibold transition-colors ${activeTab === 'aether' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aetherInterface')}</button>
-                            <button onClick={() => handleFocusPanel('agent')} className={`flex-1 p-3 text-sm font-semibold transition-colors ${activeTab === 'agent' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aiAgent')}</button>
-                            <button onClick={() => handleFocusPanel('graph')} className={`flex-1 p-3 text-sm font-semibold transition-colors ${activeTab === 'graph' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dependencyGraph')}</button>
+                        <div className="grid grid-cols-3 border-b border-gray-700 flex-shrink-0">
+                            <button onClick={() => handleFocusPanel('genesis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'genesis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageGenesis')}</button>
+                            <button onClick={() => handleFocusPanel('analysis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'analysis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageAnalysis')}</button>
+                            <button onClick={() => handleFocusPanel('chat')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'chat' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('chatbot')}</button>
+                            <button onClick={() => handleFocusPanel('fabric')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'fabric' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dataFabric')}</button>
+                            <button onClick={() => handleFocusPanel('aether')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'aether' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aetherInterface')}</button>
+                            <button onClick={() => handleFocusPanel('agent')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'agent' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('aiAgent')}</button>
+                            <button onClick={() => handleFocusPanel('graph')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'graph' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('dependencyGraph')}</button>
                         </div>
                     )}
 
                     <div className="flex-grow relative overflow-y-auto">
                        {activeTab === 'genesis' && <ImageGenesis />}
+                       {activeTab === 'analysis' && <ImageAnalysis />}
                        {activeTab === 'chat' && <Chatbot />}
+                       {activeTab === 'fabric' && <DataFabricView files={files} analysisResult={analysisResult} completedTasks={completedTasks} onPublish={handleOpenGitHubModal} />}
                        {activeTab === 'aether' && (
                            <div className="flex flex-col h-full text-sm">
-                               <div className="flex-grow relative">
-                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <p className="text-gray-700 font-mono text-xs">{t('coreMonitorStatus')}</p>
-                                    </div>
-                                    <LightPulseSimulator state={activeState} devParamsOverride={paramsOverride} />
-                               </div>
-                                <div className="p-2 bg-gray-900/50 border-t border-gray-700">
-                                    <div className="text-center">
-                                        <h4 className="font-semibold text-cyan-400">{t('aetherInterface')}</h4>
-                                        <p className="text-xs text-gray-400">Current State: <span className="font-mono text-cyan-300">{activeState}</span></p>
-                                    </div>
-                                    <div className="mt-2 p-2 border-t border-gray-700/50">
-                                        <label className="flex items-center justify-between cursor-pointer">
-                                            <span className="font-semibold text-xs text-gray-300">{t('devControls')}</span>
-                                            <div className="relative">
-                                                <input type="checkbox" checked={isDevMode} onChange={() => setIsDevMode(!isDevMode)} className="sr-only peer" />
-                                                <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
-                                            </div>
-                                        </label>
-                                        {isDevMode && (
-                                            <div className="mt-2 space-y-2 text-xs">
-                                                <div>
-                                                    <label className="block text-gray-400">{t('devStateOverride')}</label>
-                                                    <select value={manualState} onChange={e => setManualState(e.target.value as LightPulseState)} className="w-full mt-1 p-1 bg-gray-700 border border-gray-600 rounded text-white">
-                                                        {(Object.keys(STATE_CONFIG) as LightPulseState[]).map(s => <option key={s} value={s}>{s}</option>)}
-                                                    </select>
+                               {isGenesisModeActive ? (
+                                    <AetherCanvas onExit={() => setIsGenesisModeActive(false)} />
+                               ) : (
+                                   <>
+                                   <div className="flex-grow relative">
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <p className="text-gray-700 font-mono text-xs">{t('coreMonitorStatus')}</p>
+                                        </div>
+                                        <LightPulseSimulator state={activeState} devParamsOverride={paramsOverride} />
+                                   </div>
+                                    <div className="p-2 bg-gray-900/50 border-t border-gray-700">
+                                        <div className="text-center">
+                                            <h4 className="font-semibold text-cyan-400">{t('aetherInterface')}</h4>
+                                            <p className="text-xs text-gray-400">Current State: <span className="font-mono text-cyan-300">{activeState}</span></p>
+                                        </div>
+                                        <div className="mt-2 p-2 border-t border-gray-700/50">
+                                            <button 
+                                                onClick={() => setIsGenesisModeActive(true)}
+                                                className="w-full mb-2 flex items-center justify-center px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-md transition-colors"
+                                            >
+                                                <SparklesIcon className="w-4 h-4 mr-2" />
+                                                {t('activateGenesisProtocol')}
+                                            </button>
+                                            <label className="flex items-center justify-between cursor-pointer">
+                                                <span className="font-semibold text-xs text-gray-300">{t('devControls')}</span>
+                                                <div className="relative">
+                                                    <input type="checkbox" checked={isDevMode} onChange={() => setIsDevMode(!isDevMode)} className="sr-only peer" />
+                                                    <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 items-center">
-                                                     <label className="text-gray-400">{t('devParamFrequency')}</label>
-                                                     <input type="range" min="0.1" max="20" step="0.1" value={devParams.frequency} onChange={e => setDevParams(p => ({...p, frequency: +e.target.value}))} className="w-full" />
-                                                     
-                                                     <label className="text-gray-400">{t('devParamIntensity')}</label>
-                                                     <input type="range" min="0.1" max="3" step="0.1" value={devParams.intensity} onChange={e => setDevParams(p => ({...p, intensity: +e.target.value}))} className="w-full" />
-                                                     
-                                                     <label className="text-gray-400">{t('devParamDecay')}</label>
-                                                     <input type="range" min="0.8" max="0.99" step="0.01" value={devParams.decay} onChange={e => setDevParams(p => ({...p, decay: +e.target.value}))} className="w-full" />
+                                            </label>
+                                            {isDevMode && (
+                                                <div className="mt-2 space-y-2 text-xs">
+                                                    <div>
+                                                        <label className="block text-gray-400">{t('devStateOverride')}</label>
+                                                        <select value={manualState} onChange={e => setManualState(e.target.value as LightPulseState)} className="w-full mt-1 p-1 bg-gray-700 border border-gray-600 rounded text-white">
+                                                            {(Object.keys(STATE_CONFIG) as LightPulseState[]).map(s => <option key={s} value={s}>{s}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 items-center">
+                                                         <label className="text-gray-400">{t('devParamFrequency')}</label>
+                                                         <input type="range" min="0.1" max="20" step="0.1" value={devParams.frequency} onChange={e => setDevParams(p => ({...p, frequency: +e.target.value}))} className="w-full" />
+                                                         
+                                                         <label className="text-gray-400">{t('devParamIntensity')}</label>
+                                                         <input type="range" min="0.1" max="3" step="0.1" value={devParams.intensity} onChange={e => setDevParams(p => ({...p, intensity: +e.target.value}))} className="w-full" />
+                                                         
+                                                         <label className="text-gray-400">{t('devParamDecay')}</label>
+                                                         <input type="range" min="0.8" max="0.99" step="0.01" value={devParams.decay} onChange={e => setDevParams(p => ({...p, decay: +e.target.value}))} className="w-full" />
 
-                                                     <label className="text-gray-400">{t('devParamChaos')}</label>
-                                                     <input type="range" min="0" max="10" step="0.1" value={devParams.chaos} onChange={e => setDevParams(p => ({...p, chaos: +e.target.value}))} className="w-full" />
-                                                     
-                                                     <label className="text-gray-400">{t('devParamColor')}</label>
-                                                     <input type="color" value={devParams.color} onChange={e => setDevParams(p => ({...p, color: e.target.value}))} className="w-full bg-gray-700" />
+                                                         <label className="text-gray-400">{t('devParamChaos')}</label>
+                                                         <input type="range" min="0" max="10" step="0.1" value={devParams.chaos} onChange={e => setDevParams(p => ({...p, chaos: +e.target.value}))} className="w-full" />
+                                                         
+                                                         <label className="text-gray-400">{t('devParamColor')}</label>
+                                                         <input type="color" value={devParams.color} onChange={e => setDevParams(p => ({...p, color: e.target.value}))} className="w-full bg-gray-700" />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                   </>
+                                )}
                            </div>
                        )}
                         {activeTab === 'agent' && (

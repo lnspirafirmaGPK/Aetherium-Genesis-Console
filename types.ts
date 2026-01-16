@@ -1,5 +1,5 @@
 
-import type { TranslationKey } from './localization';
+import type { TranslationKey as BaseTranslationKey } from './localization';
 
 export interface CodeSymbol {
     name: string;
@@ -55,7 +55,7 @@ export interface GraphLink {
 export type RefactoringTaskType = 'BREAK_CIRCULAR_DEPENDENCY' | 'REMOVE_DEAD_CODE';
 
 // FIX: Removed incorrect `TranslationKey` type definition. The correct type is now imported.
-// export type TranslationKey = string;
+export type TranslationKey = BaseTranslationKey;
 
 export interface RefactoringTask {
     id: string;
@@ -128,3 +128,5 @@ export interface ModelConfig {
     imageGenesis: string;
     chatbot: string;
 }
+
+export type UserRole = 'leadDeveloper' | 'juniorDeveloper' | 'qaEngineer';
