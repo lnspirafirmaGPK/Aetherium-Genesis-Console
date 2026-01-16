@@ -28,6 +28,10 @@ export const Notification: React.FC<NotificationProps> = ({ notification, onDism
         return () => clearTimeout(timer);
     }, [notification.id, onDismiss]);
 
+    const messageText = notification.data
+        ? t(notification.message).replace('{data}', notification.data)
+        : t(notification.message);
+
     return (
         <div
             className={`flex items-start p-4 m-2 max-w-sm w-full bg-gray-800 border border-gray-700 shadow-lg rounded-lg transition-all duration-300 ${
@@ -39,7 +43,7 @@ export const Notification: React.FC<NotificationProps> = ({ notification, onDism
             </div>
             <div className="ml-3 w-0 flex-1">
                 <p className="text-sm font-medium text-gray-100">{t(notification.title)}</p>
-                <p className="mt-1 text-sm text-gray-400">{t(notification.message)}</p>
+                <p className="mt-1 text-sm text-gray-400">{messageText}</p>
             </div>
         </div>
     );

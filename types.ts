@@ -153,9 +153,15 @@ export interface Tier {
 }
 
 export interface FeeCalculationParams {
-    usageFactor: number;
-    honestyDiscount: number;
+    honestyScore: number;
     marketAdjustment: number;
+}
+
+export interface AiUsageLog {
+    id: string;
+    action: TranslationKey;
+    complexity: number;
+    timestamp: number;
 }
 
 export interface UserEconomicProfile {
@@ -185,4 +191,18 @@ export interface Notification {
     title: TranslationKey;
     message: TranslationKey;
     type: 'success' | 'error' | 'info';
+    data?: string; // Optional data for dynamic messages
+}
+
+export interface ArchitectAccount {
+    bankName: string;
+    accountHolder: string;
+    accountNumber: string; // Masked
+}
+
+export interface TransactionEntry {
+    id: string;
+    timestamp: number;
+    amount: number;
+    destination: string;
 }

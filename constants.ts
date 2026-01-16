@@ -1,5 +1,6 @@
-
 import type { CodeFile } from './types';
+
+export const ARCHITECT_EMAIL = 'lnspirafirma@gmail.com';
 
 export const MOCK_FILE_SYSTEM: CodeFile[] = [
     {

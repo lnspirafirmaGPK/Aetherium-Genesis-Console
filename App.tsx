@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { FileExplorer } from './components/FileExplorer';
 import { CodeEditor } from './components/CodeEditor';
@@ -15,10 +14,11 @@ import { ConfirmationModal } from './components/ConfirmationModal';
 import { ModelConfigModal } from './components/ModelConfigModal';
 import { UserProfilePanel } from './components/UserProfilePanel';
 import { EconomicFabricView } from './components/EconomicFabricView';
-import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig } from './types';
+import { Notification as NotificationComponent } from './components/Notification';
+import type { CodeFile, AnalysisResult, RefactoringTask, LightPulseState, DevLightParams, ModelConfig, Notification } from './types';
 import { AnalysisEngine } from './services/analysisEngine';
 import { RefactoringEngine } from './services/refactoringEngine';
-import { MOCK_FILE_SYSTEM } from './constants';
+import { MOCK_FILE_SYSTEM, ARCHITECT_EMAIL } from './constants';
 import { useLocalization } from './contexts/LocalizationContext';
 import { AetherBus } from './services/aetherBus';
 import { CloseIcon, CodeIcon, GitHubIcon, SpinnerIcon, CheckCircleIcon, GitBranchIcon, SparklesIcon } from './components/icons';
@@ -29,8 +29,7 @@ const App: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<CodeFile | null>(files.find(f => f.path === 'src/api/client.ts') || files[0] || null);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [highlightedNode, setHighlightedNode] = useState<string | null>(null);
-    // FIX: Add 'economicFabric' to the activeTab type definition to support the new tab.
-    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric'>('genesis');
+    const [activeTab, setActiveTab] = useState<'agent' | 'graph' | 'aether' | 'genesis' | 'analysis' | 'chat' | 'fabric' | 'economicFabric'>('economicFabric');
     const [staticTasks, setStaticTasks] = useState<RefactoringTask[]>([]);
     const [dynamicTasks, setDynamicTasks] = useState<RefactoringTask[]>([]);
     const { t } = useLocalization();
@@ -69,6 +68,25 @@ const App: React.FC = () => {
     
     // State for User Profile
     const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+    
+    // State for Notifications
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+
+    const addNotification = useCallback((title: TranslationKey, message: TranslationKey, type: 'success' | 'error' | 'info', data?: string) => {
+        const newNotification: Notification = {
+            id: Date.now(),
+            title,
+            message,
+            type,
+            data,
+        };
+        setNotifications(prev => [...prev, newNotification]);
+    }, []);
+
+    const removeNotification = (id: number) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
+
 
     const analysisEngine = useMemo(() => new AnalysisEngine(files), [files]);
     
@@ -183,12 +201,15 @@ const App: React.FC = () => {
         
         const handleWisdomStart = () => !isDevMode && setLightPulseState('THINKING');
         const handleWisdomEnd = () => !isDevMode && setLightPulseState('IDLE');
+        const handleTierSuspension = () => !isDevMode && setLightPulseState('NIRODHA');
+
 
         const unsubMechanic = aetherBus.subscribe('EXECUTE_REFACTORING_PROTOCOL', handleProtocolExecution);
         const unsubCore = aetherBus.subscribe('REFACTORING_COMPLETE', handleRefactoringComplete);
         const unsubWisdomStart = aetherBus.subscribe('WISDOM_FETCH_START', handleWisdomStart);
         const unsubWisdomEnd = aetherBus.subscribe('WISDOM_FETCH_END', handleWisdomEnd);
         const unsubSimulator = aetherBus.subscribe('SIMULATE_IMPACT', handleSimulateImpact);
+        const unsubSuspension = aetherBus.subscribe('TIER_SUSPENSION_TRIGGERED', handleTierSuspension);
     
         return () => {
             unsubMechanic();
@@ -196,6 +217,7 @@ const App: React.FC = () => {
             unsubWisdomStart();
             unsubWisdomEnd();
             unsubSimulator();
+            unsubSuspension();
         };
     }, [files, allTasks, isRefactoring, isDevMode, analysisResult]);
 
@@ -320,7 +342,6 @@ const App: React.FC = () => {
                     )}
                     
                     {focusedView === 'editor' && (
-                        // FIX: Changed grid-cols-4 to grid-cols-8 to accommodate the new tab and prevent layout breaking.
                         <div className="grid grid-cols-8 border-b border-gray-700 flex-shrink-0">
                             <button onClick={() => handleFocusPanel('genesis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'genesis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageGenesis')}</button>
                             <button onClick={() => handleFocusPanel('analysis')} className={`p-3 text-sm font-semibold transition-colors ${activeTab === 'analysis' ? 'bg-gray-900 text-cyan-400' : 'text-gray-400 hover:bg-gray-700'}`}>{t('imageAnalysis')}</button>
@@ -338,7 +359,7 @@ const App: React.FC = () => {
                        {activeTab === 'analysis' && <ImageAnalysis />}
                        {activeTab === 'chat' && <Chatbot />}
                        {activeTab === 'fabric' && <DataFabricView files={files} analysisResult={analysisResult} completedTasks={completedTasks} onPublish={handleOpenGitHubModal} />}
-                       {activeTab === 'economicFabric' && <EconomicFabricView />}
+                       {activeTab === 'economicFabric' && <EconomicFabricView addNotification={addNotification} userEmail={ARCHITECT_EMAIL} />}
                        {activeTab === 'aether' && (
                            <div className="flex flex-col h-full text-sm">
                                {isGenesisModeActive ? (
@@ -417,6 +438,18 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Notification Container */}
+            <div className="absolute top-20 right-0 z-50">
+                {notifications.map(notification => (
+                    <NotificationComponent
+                        key={notification.id}
+                        notification={notification}
+                        onDismiss={removeNotification}
+                    />
+                ))}
+            </div>
+
             {isGitHubModalOpen && (
                 <div 
                     className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
@@ -574,7 +607,7 @@ const App: React.FC = () => {
             <UserProfilePanel
                 isOpen={isUserProfileOpen}
                 onClose={() => setIsUserProfileOpen(false)}
-                userEmail="genesis.user@aetherium.io"
+                userEmail={ARCHITECT_EMAIL}
                 filesManaged={files.length}
                 protocolsExecuted={completedTasks.length}
                 imagesSynthesized={12}
