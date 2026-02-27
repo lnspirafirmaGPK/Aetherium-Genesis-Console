@@ -3,6 +3,8 @@ from chromadb.config import Settings
 import logging
 import os
 import time
+import hashlib
+from datetime import datetime
 
 logger = logging.getLogger("PRGX.Vault")
 
@@ -22,6 +24,18 @@ class Vault:
         # Initialize Collections
         self.gems = self.client.get_or_create_collection("vocal_resonance_gems")
 
+    def _embed_text(self, text, dimensions=384):
+        """
+        Build a small deterministic embedding locally.
+        This avoids online model downloads in constrained environments.
+        """
+        seed = hashlib.sha256(text.encode("utf-8")).digest()
+        vector = []
+        while len(vector) < dimensions:
+            vector.extend([byte / 255.0 for byte in seed])
+            seed = hashlib.sha256(seed).digest()
+        return vector[:dimensions]
+
     def store_gem(self, text, metadata):
         """
         Store a realized intent as a 'Gem'.
@@ -35,6 +49,7 @@ class Vault:
         self.gems.upsert(
             documents=[text],
             metadatas=[metadata],
+            embeddings=[self._embed_text(text)],
             ids=[gem_id]
         )
         logger.info(f"💎 Stored Gem: {text[:20]}... (ID: {gem_id})")
@@ -57,5 +72,3 @@ class Vault:
                 logger.debug(f"✨ Resonance amplified for Gem {gem_id}")
         except Exception as e:
             logger.error(f"Failed to update resonance: {e}")
-
-from datetime import datetime
