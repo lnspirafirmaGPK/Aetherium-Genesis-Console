@@ -1,5 +1,6 @@
 import asyncio
 import json
+from datetime import datetime
 from logger import audit_logger
 
 class AetherBus:
@@ -53,6 +54,6 @@ class AetherBus:
         self.dead_letter_queue.append({
             "payload": payload,
             "reason": reason,
-            "timestamp": "NOW" # TODO use time
+            "timestamp": datetime.now().isoformat()
         })
         audit_logger.log_event("AetherBus", "DeadLetter", "Error", reason)
