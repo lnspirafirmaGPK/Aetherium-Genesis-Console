@@ -35,15 +35,16 @@ class AetherBus:
             return
 
         # Broadcast
-        active_subscribers = []
-        for callback in self.subscribers:
+        async def _safe_callback(callback):
             try:
                 await callback(message_text)
-                active_subscribers.append(callback)
             except Exception as e:
                 # Subscriber failed (disconnected?)
                 # We might remove them or just log
                 audit_logger.log_event("AetherBus", "Publish", "SubscriberFailed", str(e))
+
+        if self.subscribers:
+            await asyncio.gather(*(_safe_callback(cb) for cb in self.subscribers))
 
         # Update subscribers list (remove disconnected ones if needed, but for now we keep simple)
         # Logging
